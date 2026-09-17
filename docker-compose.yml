@@ -1,0 +1,39 @@
+services:
+    postgres:
+        image: postgres:18-alpine
+        container_name: webhook_postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: webhook_gateway
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgrespassword
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql
+
+    rabbitmq:
+        image: rabbitmq:4-management
+        container_name: webhook_rabbitmq
+        environment:
+            RABBITMQ_DEFAULT_USER: guest
+            RABBITMQ_DEFAULT_PASS: guest
+        ports:
+            - "5672:5672" # AMQP protocol port
+            - "15672:15672" # Management Web UI port
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+
+    redis:
+        image: redis:8-alpine
+        container_name: webhook_redis
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+
+volumes:
+    postgres_data:
+    rabbitmq_data:
+    redis_data:

@@ -1,0 +1,151 @@
+info:
+  name: Untitled
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/api/v1/webhooks/dispatch
+  headers:
+    - name: X-API-KEY
+      value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+    - name: X-Endpoint-ID
+      value: 01775840-b6ca-41a3-b281-704654cd40e0
+    - name: X-Event-Type
+      value: order.updated
+  body:
+    type: json
+    data: |-
+      {
+          "orderId": "ord_99812",
+          "amount": 149.99,
+          "currency": "USD",
+          "customer": {
+            "id": "usr_4412",
+            "email": "alex@example.com"
+          }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+examples:
+  - name: Webhhok Dispatched
+    request:
+      url: http://localhost:8080/api/v1/webhooks/dispatch
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+      body:
+        type: json
+        data: |-
+          {
+            "endpointId": "dec5117a-f8a4-4e33-9603-7aacf321f2c8",
+            "eventType": "order.created",
+            "payload": {
+              "orderId": "ord_99812",
+              "amount": 149.99,
+              "currency": "USD",
+              "customer": {
+                "id": "usr_4412",
+                "email": "alex@example.com"
+              }
+            }
+          }
+    response:
+      status: 202
+      statusText: Accepted
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Wed, 09 Sep 2026 09:08:41 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "eventId": "66beb7a1-e5ff-4dc6-9a60-863772ad88e4",
+            "status": "PENDING",
+            "createdAt": "2026-09-09T09:08:41.935397Z"
+          }
+  - name: Webhook Dispatch 2
+    request:
+      url: http://localhost:8080/api/v1/webhooks/dispatch
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+        - name: X-Endpoint-ID
+          value: 01775840-b6ca-41a3-b281-704654cd40e0
+        - name: X-Event-Type
+          value: order.updated
+      body:
+        type: json
+        data: |-
+          {
+              "orderId": "ord_99812",
+              "amount": 149.99,
+              "currency": "USD",
+              "customer": {
+                "id": "usr_4412",
+                "email": "alex@example.com"
+              }
+          }
+    response:
+      status: 202
+      statusText: Accepted
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Sun, 13 Sep 2026 07:04:23 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "eventId": "bbc8b652-635c-47f2-abe1-6e569b10e4d9",
+            "status": "PENDING",
+            "createdAt": "2026-09-13T07:04:23.337392Z"
+          }

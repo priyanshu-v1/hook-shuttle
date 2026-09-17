@@ -1,0 +1,127 @@
+info:
+  name: Untitled
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/api/v1/api-keys
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc4ODg2OTU4NCwiZXhwIjoxNzg4OTU1OTg0fQ.ecxmBwi3abBlUf1QFYmesXyeDr11jEJNqe_Qj-bfyXyl6jadcp6g2cHCYiAEtAYwkDwAlhRRFtx3_b-5h47Adg
+  body:
+    type: json
+    data: |-
+      {
+        "keyName": "production-server"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+examples:
+  - name: 201 Created
+    request:
+      url: http://localhost:8080/api/v1/api-keys
+      method: POST
+      headers:
+        - name: Authorization
+          value: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc4ODg2OTU4NCwiZXhwIjoxNzg4OTU1OTg0fQ.ecxmBwi3abBlUf1QFYmesXyeDr11jEJNqe_Qj-bfyXyl6jadcp6g2cHCYiAEtAYwkDwAlhRRFtx3_b-5h47Adg
+      body:
+        type: json
+        data: |-
+          {
+            "keyName": "production-server"
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Tue, 08 Sep 2026 12:16:30 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "c720bd7b-cd5d-4e91-8b77-549f372cc4f1",
+            "keyName": "production-server",
+            "apiKey": "wh_live_vkR2JpMZTghdnLCbN_Bi768Nxee8pFzIHUixwxomW78",
+            "keyPrefix": "wh_live_vkR2JpMZ",
+            "status": "ACTIVE",
+            "createdAt": "2026-09-08T12:16:30.800213Z"
+          }
+  - name: 2nd 201 Created
+    request:
+      url: http://localhost:8080/api/v1/api-keys
+      method: POST
+      headers:
+        - name: Authorization
+          value: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc4ODg2OTU4NCwiZXhwIjoxNzg4OTU1OTg0fQ.ecxmBwi3abBlUf1QFYmesXyeDr11jEJNqe_Qj-bfyXyl6jadcp6g2cHCYiAEtAYwkDwAlhRRFtx3_b-5h47Adg
+      body:
+        type: json
+        data: |-
+          {
+            "keyName": "production-server"
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Tue, 08 Sep 2026 12:17:47 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "d1217e3d-d9e4-42ba-b586-52cf2c685bdf",
+            "keyName": "production-server",
+            "apiKey": "wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico",
+            "keyPrefix": "wh_live_nvhRkn1E",
+            "status": "ACTIVE",
+            "createdAt": "2026-09-08T12:17:47.534120Z"
+          }
