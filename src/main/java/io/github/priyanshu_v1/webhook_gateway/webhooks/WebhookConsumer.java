@@ -1,6 +1,8 @@
 package io.github.priyanshu_v1.webhook_gateway.webhooks;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -8,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.priyanshu_v1.webhook_gateway.config.RabbitMQConfig;
 import io.github.priyanshu_v1.webhook_gateway.entity.DeliveryAttempt;
@@ -27,6 +31,7 @@ public class WebhookConsumer {
     private final RedissonRetryQueueService retryQueueService;
     private final SignatureService signatureService;
     private final EncryptionService encryptionService;
+    private final ObjectMapper objectMapper;
     private final WebClient webClient;
 
     public WebhookConsumer(WebhookEventRepository eventRepository,
@@ -34,12 +39,14 @@ public class WebhookConsumer {
                            RedissonRetryQueueService retryQueueService,
                            SignatureService signatureService,
                            EncryptionService encryptionService,
+                           ObjectMapper objectMapper,
                            WebClient webClient) {
         this.eventRepository = eventRepository;
         this.attemptRepository = attemptRepository;
         this.retryQueueService = retryQueueService;
         this.signatureService = signatureService;
         this.encryptionService = encryptionService;
+        this.objectMapper = objectMapper;
         this.webClient = webClient;
     }
 
@@ -68,10 +75,17 @@ public class WebhookConsumer {
                         long latency = System.currentTimeMillis() - startTime;
                         int statusCode = response.statusCode().value();
 
+                        Map<String, String> responseHeaders = new HashMap<>();
+                        response.headers().asHttpHeaders().forEach((key, values) -> {
+                            if (values != null && !values.isEmpty()) {
+                                responseHeaders.put(key, String.join(", ", values));
+                            }
+                        });
+                        
                         return response.bodyToMono(String.class)
                                 .defaultIfEmpty("")
                                 .flatMap(responseBody -> {
-                                    handleDispatchResult(event, statusCode, latency, responseBody, null);
+                                    handleDispatchResult(event, statusCode, latency, responseBody, null, responseHeaders);
                                     return reactor.core.publisher.Mono.empty();
                                 });
                     })
@@ -79,11 +93,11 @@ public class WebhookConsumer {
 
         } catch (Exception ex) {
             long latency = System.currentTimeMillis() - startTime;
-            handleDispatchResult(event, 500, latency, "Dispatch Failed: " + ex.getMessage(), ex.getMessage());
+            handleDispatchResult(event, 500, latency, "Dispatch Failed: " + ex.getMessage(), ex.getMessage(), Map.of());
         }
     }
 
-    private void handleDispatchResult(WebhookDispatchEvent event, int statusCode, long latency, String responseBody, String errorMessage) {
+    private void handleDispatchResult(WebhookDispatchEvent event, int statusCode, long latency, String responseBody, String errorMessage, Map<String, String> responseHeaders) {
         WebhookEvent webhookEvent = eventRepository.findById(event.eventId())
                 .orElseThrow(() -> new IllegalArgumentException("WebhookEvent not found: " + event.eventId()));
 
@@ -96,6 +110,11 @@ public class WebhookConsumer {
         attempt.setResponseBody(responseBody);
         attempt.setErrorMessage(errorMessage);
         attempt.setScheduledAt(Instant.now());
+        
+        if (responseHeaders != null && !responseHeaders.isEmpty()) {
+            attempt.setResponseHeaders(objectMapper.valueToTree(responseHeaders));
+        }
+        
         attemptRepository.save(attempt);
 
         // 2. Success Case (2xx)

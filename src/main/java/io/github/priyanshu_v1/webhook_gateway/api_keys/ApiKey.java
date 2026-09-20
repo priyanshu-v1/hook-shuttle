@@ -1,19 +1,34 @@
 package io.github.priyanshu_v1.webhook_gateway.api_keys;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.EqualsAndHashCode;
+import java.time.Instant;
+import java.util.UUID;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import io.github.priyanshu_v1.webhook_gateway.entity.User;
-
-import java.time.Instant;
-import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "api_keys")
@@ -37,7 +52,12 @@ public class ApiKey {
 
     @Column(name = "key_prefix", nullable = false, length = 16)
     private String keyPrefix;
+    
+    @Builder.Default
+    @Column(name = "is_live", nullable = false)
+    private boolean isLive = true;
 
+    @Builder.Default
     @Column(name = "status", nullable = false, length = 50)
     private String status = "ACTIVE";
 

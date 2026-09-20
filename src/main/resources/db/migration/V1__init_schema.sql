@@ -25,6 +25,7 @@ CREATE TABLE api_keys (
     key_name VARCHAR(100) NOT NULL,
     api_key_hash VARCHAR(255) NOT NULL UNIQUE,
     key_prefix VARCHAR(16) NOT NULL,
+    is_live BOOLEAN NOT NULL DEFAULT FALSE,
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
     last_used_at TIMESTAMP WITH TIME ZONE,
     expires_at TIMESTAMP WITH TIME ZONE,

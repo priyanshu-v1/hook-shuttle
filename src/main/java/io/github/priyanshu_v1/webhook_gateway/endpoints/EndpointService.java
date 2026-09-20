@@ -46,13 +46,16 @@ public class EndpointService {
         Integer rateLimit = request.rateLimitPerSec() != null ? request.rateLimitPerSec() : 100;
         Integer timeout = request.timeoutMs() != null ? request.timeoutMs() : 5000;
         Integer retries = request.maxRetries() != null ? request.maxRetries() : 5;
+        
+        boolean isActive = request.active() == null || request.active();
+        String initialStatus = isActive ? "ACTIVE" : "DISABLED";
 
         Endpoint endpoint = Endpoint.builder()
                 .user(user)
                 .targetUrl(request.targetUrl())
                 .description(request.description())
                 .secretKey(encryptedSecretKey)
-                .status("ACTIVE")
+                .status(initialStatus)
                 .rateLimitPerSec(rateLimit)
                 .timeoutMs(timeout)
                 .maxRetries(retries)
@@ -95,5 +98,16 @@ public class EndpointService {
                 endpoint.getCreatedAt(),
                 endpoint.getUpdatedAt()
         );
+    }
+    
+    @Transactional
+    public void toggleEndpointStatus(UUID id, UUID userId) {
+        Endpoint endpoint = endpointRepository.findByIdAndUser_Id(id, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Endpoint not found or unauthorized"));
+        
+        String newStatus = "ACTIVE".equals(endpoint.getStatus()) ? "DISABLED" : "ACTIVE";
+        endpoint.setStatus(newStatus);
+        
+        endpointRepository.save(endpoint);
     }
 }

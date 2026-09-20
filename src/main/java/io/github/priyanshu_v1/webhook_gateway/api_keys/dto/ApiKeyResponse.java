@@ -9,5 +9,6 @@ public record ApiKeyResponse(
     String apiKey,      // Raw key - SHOWN ONLY ONCE!
     String keyPrefix,
     String status,
+    Instant lastUsedAt,
     Instant createdAt
 ) {}

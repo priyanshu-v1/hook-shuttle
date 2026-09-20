@@ -2,6 +2,7 @@ package io.github.priyanshu_v1.webhook_gateway.webhooks;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,9 @@ public interface WebhookEventRepository extends JpaRepository<WebhookEvent, UUID
         @Param("status") String status, 
         @Param("dateTime") Instant dateTime
     );
+    
+    
+ // Added for frontend queries
+    List<WebhookEvent> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    Optional<WebhookEvent> findByIdAndUserId(UUID id, UUID userId);
 }

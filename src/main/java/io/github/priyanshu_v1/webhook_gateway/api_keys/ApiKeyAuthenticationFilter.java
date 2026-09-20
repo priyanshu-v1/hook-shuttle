@@ -42,6 +42,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
             if (matchedKey.isPresent()) {
             	ApiKeyAuthProjection authData = matchedKey.get();
+            	apiKeyRepository.updateLastUsedAt(authData.apiKeyHash());
             	
             	UserPrincipal principal = new UserPrincipal(authData.userId(), authData.userEmail());
 

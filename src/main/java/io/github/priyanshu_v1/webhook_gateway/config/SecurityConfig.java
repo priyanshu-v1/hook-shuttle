@@ -1,5 +1,9 @@
 package io.github.priyanshu_v1.webhook_gateway.config;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -9,6 +13,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import io.github.priyanshu_v1.webhook_gateway.api_keys.ApiKeyAuthenticationFilter;
 import io.github.priyanshu_v1.webhook_gateway.api_keys.ApiKeyRepository;
@@ -21,6 +28,12 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final ApiKeyRepository apiKeyRepository;
     private final PasswordEncoder passwordEncoder;
+    
+    @Value("${webhook-gateway.cors.enabled:false}")
+    private boolean corsEnabled;
+
+    @Value("${webhook-gateway.cors.allowed-origins:}")
+    private String allowedOriginsString;
 
     public SecurityConfig(
             JwtService jwtService,
@@ -36,7 +49,7 @@ public class SecurityConfig {
     @Order(0)
     public SecurityFilterChain publicMockSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher("/api/test-webhook/**")
+                .securityMatcher("/", "/index.html", "/static/**", "/assets/**", "/api/test-webhook/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
@@ -65,6 +78,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(jwtService);
 
         return http
+        		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityMatcher("/api/v1/endpoints/**", "/api/v1/api-keys/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -82,6 +96,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(jwtService);
 
         return http
+        		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -92,5 +107,24 @@ public class SecurityConfig {
                 .build();
     }
     
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        if (corsEnabled && !allowedOriginsString.isBlank()) {
+            List<String> origins = Arrays.asList(allowedOriginsString.split(","));
+            configuration.setAllowedOrigins(origins);
+            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+            configuration.setAllowedHeaders(List.of("*"));
+            configuration.setAllowCredentials(true);
+        } else {
+            configuration.setAllowedOrigins(List.of());
+        }
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
 }

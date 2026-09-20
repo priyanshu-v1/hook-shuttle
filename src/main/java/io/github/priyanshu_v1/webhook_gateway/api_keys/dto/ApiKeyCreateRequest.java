@@ -6,5 +6,7 @@ import jakarta.validation.constraints.Size;
 public record ApiKeyCreateRequest(
     @NotBlank(message = "Key name is required")
     @Size(max = 100, message = "Key name must be at most 100 characters")
-    String keyName
+    String keyName,
+    
+    Boolean live
 ) {}

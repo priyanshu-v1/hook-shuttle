@@ -11,5 +11,6 @@ public record EndpointCreateRequest(
         String description,
         Integer rateLimitPerSec,
         Integer timeoutMs,
-        Integer maxRetries
+        Integer maxRetries,
+        Boolean active
 ) {}

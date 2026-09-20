@@ -8,16 +8,16 @@ http:
   url: http://localhost:8080/api/v1/endpoints
   headers:
     - name: X-API-KEY
-      value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+      value: hs_live_2vZhoPOoOHfD5r6V3Mhc7c05iVK4nWEQdYCJ-Qb7YlQ
   body:
     type: json
     data: |-
       {
-        "targetUrl": "http://localhost:9000",
+        "target_url": "https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45",
         "description": "Primary production listener",
-        "rateLimitPerSec": 10,
-        "timeoutMs": 5000,
-        "maxRetries": 3
+        "rate_limit_per_sec": 10,
+        "timeout_ms": 5000,
+        "max_retries": 3
       }
   auth: inherit
 
@@ -202,4 +202,64 @@ examples:
             "maxRetries": 3,
             "createdAt": "2026-09-16T14:20:04.056451Z",
             "updatedAt": "2026-09-16T14:20:04.056451Z"
+          }
+  - name: new-register
+    request:
+      url: http://localhost:8080/api/v1/endpoints
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: hs_live_2vZhoPOoOHfD5r6V3Mhc7c05iVK4nWEQdYCJ-Qb7YlQ
+      body:
+        type: json
+        data: |-
+          {
+            "target_url": "https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45",
+            "description": "Primary production listener",
+            "rate_limit_per_sec": 10,
+            "timeout_ms": 5000,
+            "max_retries": 3
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: vary
+          value: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Sun, 20 Sep 2026 16:41:47 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "bbcac00b-9cc6-489d-a6fe-408a935f9f06",
+            "target_url": "https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45",
+            "description": "Primary production listener",
+            "secret_key": "whsec_ao-6nCngi8KNVgDcZQ2rJh74pRzyCMBJI1QRAOJ0XrM",
+            "status": "ACTIVE",
+            "rate_limit_per_sec": 10,
+            "timeout_ms": 5000,
+            "max_retries": 3,
+            "created_at": "2026-09-20T16:41:47.562795Z",
+            "updated_at": "2026-09-20T16:41:47.562795Z"
           }

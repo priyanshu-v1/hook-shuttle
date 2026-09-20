@@ -5,16 +5,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import io.github.priyanshu_v1.webhook_gateway.api_keys.dto.ApiKeyAuthProjection;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ApiKeyRepository extends JpaRepository<ApiKey, UUID> {
     Optional<ApiKey> findByApiKeyHashAndStatus(String apiKeyHash, String status);
     List<ApiKey> findByUserId(UUID userId);
+    Optional<ApiKey> findByIdAndUserId(UUID id, UUID userId);
     List<ApiKey> findByKeyPrefixAndStatus(String keyPrefix, String status);
     
     @Query("SELECT new io.github.priyanshu_v1.webhook_gateway.api_keys.dto.ApiKeyAuthProjection(k.apiKeyHash, u.email, u.id) " +
@@ -24,4 +27,9 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, UUID> {
              @Param("prefix") String prefix, 
              @Param("status") String status
      );
+    
+    @Modifying
+    @Transactional
+    @Query("UPDATE ApiKey k SET k.lastUsedAt = CURRENT_TIMESTAMP WHERE k.apiKeyHash = :hash")
+    void updateLastUsedAt(@Param("hash") String hash);
 }
