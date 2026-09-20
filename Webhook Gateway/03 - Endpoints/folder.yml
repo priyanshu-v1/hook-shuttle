@@ -1,7 +1,0 @@
-info:
-  name: 03 - Endpoints
-  type: folder
-  seq: 3
-
-request:
-  auth: inherit
