@@ -89,6 +89,22 @@ CREATE TABLE delivery_attempts (
 CREATE INDEX idx_delivery_attempts_event ON delivery_attempts(event_id);
 CREATE INDEX idx_delivery_attempts_attempted ON delivery_attempts(attempted_at DESC);
 
+-- 6. REFRESH_TOKENS TABLE
+CREATE TABLE refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_prefix VARCHAR(16) NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    family_id UUID NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    absolute_expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_refresh_tokens_prefix ON refresh_tokens(token_prefix);
+CREATE INDEX idx_refresh_tokens_family ON refresh_tokens(family_id);
+
 -- TIMESTAMP TRIGGER FUNCTION
 CREATE OR REPLACE FUNCTION update_timestamp_column()
 RETURNS TRIGGER AS $$

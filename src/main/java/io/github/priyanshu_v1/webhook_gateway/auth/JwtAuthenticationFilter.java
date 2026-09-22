@@ -60,6 +60,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             // Invalid/expired token - leave context empty so Spring Security rejects with 401
+        	response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Access token expired or invalid\"}");
+            return; // Stop the filter chain
         }
 
         filterChain.doFilter(request, response);

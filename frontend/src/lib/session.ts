@@ -15,11 +15,21 @@ export function getSession(): Session | null {
   }
 }
 
+export function setSession(session: Session): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(session));
+  } catch (error) {
+    console.error('Failed to save session', error);
+  }
+}
+
 export function signIn(email: string): Session {
   const session: Session = { email, token: `mock.jwt.${Date.now().toString(36)}` };
   window.localStorage.setItem(KEY, JSON.stringify(session));
   return session;
 }
+
 
 export function signOut() {
   window.localStorage.removeItem(KEY);

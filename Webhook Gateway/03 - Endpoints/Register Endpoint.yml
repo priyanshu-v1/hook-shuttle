@@ -1,0 +1,265 @@
+info:
+  name: Register Endpoint
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/api/v1/endpoints
+  headers:
+    - name: X-API-KEY
+      value: hs_live_2vZhoPOoOHfD5r6V3Mhc7c05iVK4nWEQdYCJ-Qb7YlQ
+  body:
+    type: json
+    data: |-
+      {
+        "target_url": "https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45",
+        "description": "Primary production listener",
+        "rate_limit_per_sec": 10,
+        "timeout_ms": 5000,
+        "max_retries": 3
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+examples:
+  - name: Register Endpoint 1
+    request:
+      url: http://localhost:8080/api/v1/endpoints
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+      body:
+        type: json
+        data: |-
+          {
+            "targetUrl": "https://webhook.site/your-unique-id",
+            "description": "Primary production listener",
+            "rateLimitPerSec": 10,
+            "timeoutMs": 5000,
+            "maxRetries": 3
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Tue, 08 Sep 2026 13:14:35 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "ed1ecc6a-7867-4198-bb3a-5cefeeacbd31",
+            "targetUrl": "https://webhook.site/your-unique-id",
+            "description": "Primary production listener",
+            "secretKey": "whsec_JG9UmxgOkeqhf6lfMSyAOwgfpMFeUjB68UNv3_0zBrM",
+            "status": "ACTIVE",
+            "rateLimitPerSec": 10,
+            "timeoutMs": 5000,
+            "maxRetries": 3,
+            "createdAt": "2026-09-08T13:14:35.829635Z",
+            "updatedAt": "2026-09-08T13:14:35.829635Z"
+          }
+  - name: Register Endpoint 2
+    request:
+      url: http://localhost:8080/api/v1/endpoints
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+      body:
+        type: json
+        data: |-
+          {
+            "targetUrl": "https://webhook-2.site/your-unique-id",
+            "description": "Primary production listener",
+            "rateLimitPerSec": 10,
+            "timeoutMs": 5000,
+            "maxRetries": 3
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Tue, 08 Sep 2026 14:24:45 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "4ee3e962-ee71-4e82-81a2-385fd5648b47",
+            "targetUrl": "https://webhook-2.site/your-unique-id",
+            "description": "Primary production listener",
+            "secretKey": "whsec_ZudWehnbNKkNEPmkhdxK5FaRXcm-dar3DSwJl4CXc18",
+            "status": "ACTIVE",
+            "rateLimitPerSec": 10,
+            "timeoutMs": 5000,
+            "maxRetries": 3,
+            "createdAt": "2026-09-08T14:24:45.101820Z",
+            "updatedAt": "2026-09-08T14:24:45.101820Z"
+          }
+  - name: external receiver
+    request:
+      url: http://localhost:8080/api/v1/endpoints
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: wh_live_nvhRkn1EaZbirhSY4KUiKTEqVLx2Vuct10qvYG41Ico
+      body:
+        type: json
+        data: |-
+          {
+            "targetUrl": "http://localhost:9000",
+            "description": "Primary production listener",
+            "rateLimitPerSec": 10,
+            "timeoutMs": 5000,
+            "maxRetries": 3
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Wed, 16 Sep 2026 14:20:04 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "863b4fd3-2467-40ee-9640-4969b629c461",
+            "targetUrl": "http://localhost:9000",
+            "description": "Primary production listener",
+            "secretKey": "whsec_YD6sWc7YxA_SUPsq38iEKPmZHMGIRx9PZvD3bXaiqus",
+            "status": "ACTIVE",
+            "rateLimitPerSec": 10,
+            "timeoutMs": 5000,
+            "maxRetries": 3,
+            "createdAt": "2026-09-16T14:20:04.056451Z",
+            "updatedAt": "2026-09-16T14:20:04.056451Z"
+          }
+  - name: new-register
+    request:
+      url: http://localhost:8080/api/v1/endpoints
+      method: POST
+      headers:
+        - name: X-API-KEY
+          value: hs_live_2vZhoPOoOHfD5r6V3Mhc7c05iVK4nWEQdYCJ-Qb7YlQ
+      body:
+        type: json
+        data: |-
+          {
+            "target_url": "https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45",
+            "description": "Primary production listener",
+            "rate_limit_per_sec": 10,
+            "timeout_ms": 5000,
+            "max_retries": 3
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: vary
+          value: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-xss-protection
+          value: "0"
+        - name: cache-control
+          value: no-cache, no-store, max-age=0, must-revalidate
+        - name: pragma
+          value: no-cache
+        - name: expires
+          value: "0"
+        - name: x-frame-options
+          value: DENY
+        - name: content-type
+          value: application/json
+        - name: transfer-encoding
+          value: chunked
+        - name: date
+          value: Sun, 20 Sep 2026 16:41:47 GMT
+        - name: keep-alive
+          value: timeout=60
+        - name: connection
+          value: keep-alive
+      body:
+        type: json
+        data: |-
+          {
+            "id": "bbcac00b-9cc6-489d-a6fe-408a935f9f06",
+            "target_url": "https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45",
+            "description": "Primary production listener",
+            "secret_key": "whsec_ao-6nCngi8KNVgDcZQ2rJh74pRzyCMBJI1QRAOJ0XrM",
+            "status": "ACTIVE",
+            "rate_limit_per_sec": 10,
+            "timeout_ms": 5000,
+            "max_retries": 3,
+            "created_at": "2026-09-20T16:41:47.562795Z",
+            "updated_at": "2026-09-20T16:41:47.562795Z"
+          }
