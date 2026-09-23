@@ -16,7 +16,7 @@ local.properties
 
 
 # Ignore Bruno workspace / local API client collections
-"Webhook Gateway/"
+Webhook Gateway/
 
 # External tool builders
 .externalToolBuilders/
