@@ -2,12 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createApiKey, fetchApiKeys, revokeApiKey } from "@/api/apiKeyApi";
 
-export function useApiKeys() {
+export function useApiKeys(page: number, size: number) {
   const queryClient = useQueryClient();
 
-  const { data: apiKeys = [], isLoading } = useQuery({
-    queryKey: ["api-keys"],
-    queryFn: fetchApiKeys,
+  const query = useQuery({
+    queryKey: ["api-keys", page, size],
+    queryFn: () => fetchApiKeys(page, size),
   });
 
   const createMutation = useMutation({
@@ -34,8 +34,9 @@ export function useApiKeys() {
   });
 
   return {
-    apiKeys,
-    isLoading,
+    ...query,
+    apiKeys: query.data?.content || [],
+    totalElements: query.data?.total_elements || 0,
     createApiKey: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
     revokeApiKey: revokeMutation.mutate,

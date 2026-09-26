@@ -32,10 +32,10 @@ public class AuthService {
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
 
-    @Value("${webhook-gateway.auth.refresh.sliding-window}")
+    @Value("${hook-shuttle.auth.refresh.sliding-window}")
     private Duration slidingWindow;
 
-    @Value("${webhook-gateway.auth.refresh.absolute-ceiling}")
+    @Value("${hook-shuttle.auth.refresh.absolute-ceiling}")
     private Duration absoluteCeiling;
     
     public AuthService(

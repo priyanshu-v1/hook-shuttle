@@ -7,9 +7,15 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  organization_name: string; // matches backend record field
+}
+
 export interface AuthResponse {
   token: string;
-  tokenType: string;
+  token_type: string;
   email: string;
   role: string;
 }
@@ -21,10 +27,21 @@ export async function loginUser(credentials: { email: string; password: string }
     return mockSignIn(credentials.email);
   }
   
-  const response = await authApi.post<LoginRequest, AuthResponse>("/api/v1/auth/login", credentials);
-  
+  const response = await authApi.post<AuthResponse, AuthResponse, LoginRequest>("/api/v1/auth/login", credentials);
+
   return {
     email: response.email || credentials.email,
+    token: response.token,
+  };
+}
+
+export async function registerUser(data: RegisterRequest): Promise<Session> {
+  if (USE_MOCK) {
+    return mockSignIn(data.email);
+  }
+  const response = await authApi.post<AuthResponse, AuthResponse, RegisterRequest>("/api/v1/auth/register", data);
+  return {
+    email: response.email || data.email,
     token: response.token,
   };
 }

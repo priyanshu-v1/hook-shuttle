@@ -21,6 +21,7 @@ const titles: Record<string, string> = {
   "/endpoints": "Endpoints",
   "/api-keys": "API Keys",
   "/events": "Webhook Events",
+  "/dlq": "Dead Letter Queue",
 };
 
 function DashboardLayout() {

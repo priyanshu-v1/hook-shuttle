@@ -67,4 +67,7 @@ public class DeliveryAttempt {
     @CreatedDate
     @Column(name = "attempted_at", nullable = false, updatable = false)
     private Instant attemptedAt;
+    
+    @Column(name = "trigger_type", nullable = false)
+    private String triggerType = "INITIAL";
 }

@@ -1,35 +1,36 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Lock, Rocket } from "lucide-react";
+import { Building2, Loader2, Rocket, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getSession } from "@/lib/session";
-import { useAuth } from "@/hooks/useAuth"; // Import your new auth hook
+import { useAuth } from "@/hooks/useAuth";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Sign in · hook-shuttle Console" },
+      { title: "Create admin account · hook-shuttle Console" },
       {
         name: "description",
         content:
-          "Secure operator sign-in for the hook-shuttle console: monitor webhook delivery, endpoints, API keys and audit trails.",
+          "Bootstrap the initial hook-shuttle administrator account with your organization name, email and password.",
       },
     ],
   }),
-  component: LoginPage,
+  component: RegisterPage,
 });
 
-function LoginPage() {
+function RegisterPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("operator@hook-shuttle.io");
+  const [org, setOrg] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Use the auth hook
-  const { login, isLoggingIn } = useAuth();
+  const { register, isRegistering } = useAuth();
 
   useEffect(() => {
     if (getSession()) navigate({ to: "/dashboard", replace: true });
@@ -38,21 +39,33 @@ function LoginPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!email.includes("@") || password.length < 8) {
-      setError("Enter a valid email and a password of at least 8 characters.");
+
+    if (org.trim().length < 2) {
+      setError("Enter an organization name with at least 2 characters.");
+      return;
+    }
+    if (!email.includes("@")) {
+      setError("Enter a valid email address.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match.");
       return;
     }
 
     try {
-      await login({ email, password });
-      // Navigation and success toast are handled inside the mutation's onSuccess
+      await register({ organization_name: org.trim(), email, password });
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Authentication failed. Check your credentials.");
+      setError(err?.response?.data?.message || "Registration failed. Please check your details.");
     }
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
       <div className="pointer-events-none absolute inset-0 [background:radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,var(--foreground)_1px,transparent_1px),linear-gradient(to_bottom,var(--foreground)_1px,transparent_1px)] [background-size:44px_44px]" />
 
@@ -62,9 +75,9 @@ function LoginPage() {
             <Rocket className="size-5" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">hook-shuttle console</h1>
+            <h1 className="text-xl font-semibold tracking-tight">Create admin account</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Sign in to manage your webhook gateway
+              Bootstrap the first operator for your workspace
             </p>
           </div>
         </div>
@@ -73,6 +86,20 @@ function LoginPage() {
           onSubmit={submit}
           className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm"
         >
+          <div className="space-y-2">
+            <Label htmlFor="org">Organization name</Label>
+            <div className="relative">
+              <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="org"
+                value={org}
+                onChange={(e) => setOrg(e.target.value)}
+                placeholder="Acme Inc."
+                className="pl-9"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -84,36 +111,46 @@ function LoginPage() {
               placeholder="you@company.com"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="confirm">Confirm password</Label>
+            <Input
+              id="confirm"
+              type="password"
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={isLoggingIn}>
-            {isLoggingIn ? (
+          <Button type="submit" className="w-full" disabled={isRegistering}>
+            {isRegistering ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
-              <Lock className="size-4" />
+              <UserPlus className="size-4" />
             )}
-            {isLoggingIn ? "Verifying…" : "Sign in"}
+            {isRegistering ? "Creating account…" : "Create account"}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
-            Access is provisioned by your workspace administrator.
-          </p>
-          <p className="text-center text-xs text-muted-foreground">
-            Setting up a new workspace?{" "}
-            <Link to="/register" className="font-medium text-primary hover:underline">
-              Create admin account
+            Already provisioned?{" "}
+            <Link to="/" className="font-medium text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </form>

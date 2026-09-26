@@ -31,6 +31,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { useApiKeys } from "@/hooks/useApiKeys";
 import type { ApiKey } from "@/lib/mock-data";
+import { ListPagination } from "@/components/list-pagination";
 
 export const Route = createFileRoute("/_authenticated/api-keys")({
   head: () => ({
@@ -60,7 +61,10 @@ function fmt(value: string | null) {
 }
 
 function ApiKeysPage() {
-  const { apiKeys, createApiKey, revokeApiKey, isCreating } = useApiKeys();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { apiKeys, totalElements, createApiKey, revokeApiKey, isCreating } = useApiKeys(page - 1, pageSize);
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
   const [live, setLive] = useState(true);
@@ -148,6 +152,16 @@ function ApiKeysPage() {
               ))}
             </TableBody>
           </Table>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalElements}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1); // Reset to page 1 on size change
+            }}
+          />
         </CardContent>
       </Card>
 

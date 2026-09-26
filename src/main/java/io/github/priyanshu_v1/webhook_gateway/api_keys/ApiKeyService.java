@@ -2,10 +2,10 @@ package io.github.priyanshu_v1.webhook_gateway.api_keys;
 
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,8 +72,8 @@ public class ApiKeyService {
     
     
     @Transactional(readOnly = true)
-    public List<ApiKeyResponse> getApiKeysByUser(UUID userId) {
-        return apiKeyRepository.findByUserId(userId).stream()
+    public Page<ApiKeyResponse> getApiKeysByUser(UUID userId, Pageable pageable) {
+        return apiKeyRepository.findByUserId(userId, pageable)
                 .map(apiKey -> new ApiKeyResponse(
                         apiKey.getId(),
                         apiKey.getKeyName(),
@@ -82,8 +82,7 @@ public class ApiKeyService {
                         apiKey.getStatus(),
                         apiKey.getLastUsedAt(),
                         apiKey.getCreatedAt()
-                ))
-                .collect(Collectors.toList());
+                ));
     }
     
     @Transactional

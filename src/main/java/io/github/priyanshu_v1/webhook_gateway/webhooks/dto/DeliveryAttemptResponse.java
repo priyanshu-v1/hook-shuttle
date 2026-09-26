@@ -9,5 +9,6 @@ public record DeliveryAttemptResponse(
     long executionTimeMs,
     String errorMessage,
     Instant attemptedAt,
-    Map<String, String> headers
+    Map<String, String> headers,
+    String triggerType
 ) {}

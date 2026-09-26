@@ -12,16 +12,16 @@ import java.util.List;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${webhook-gateway.redis.mode:single}")
+    @Value("${hook-shuttle.redis.mode:single}")
     private String redisMode;
 
-    @Value("${webhook-gateway.redis.host:localhost}")
+    @Value("${hook-shuttle.redis.host:localhost}")
     private String host;
 
-    @Value("${webhook-gateway.redis.port:6379}")
+    @Value("${hook-shuttle.redis.port:6379}")
     private int port;
 
-    @Value("${webhook-gateway.redis.cluster-nodes:}")
+    @Value("${hook-shuttle.redis.cluster-nodes:}")
     private List<String> clusterNodes;
 
     @Bean(destroyMethod = "shutdown")

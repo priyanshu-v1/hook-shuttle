@@ -12,7 +12,7 @@ import java.io.IOException;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Value("${webhook-gateway.serve-frontend:true}")
+    @Value("${hook-shuttle.serve-frontend:true}")
     private boolean serveFrontend;
 
     @Override

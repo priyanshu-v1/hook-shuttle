@@ -23,8 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { metrics, statusBreakdown, throughput, webhookEvents } from "@/lib/mock-data";
 import { useEvents } from "@/hooks/useEvents";
+import { useMetrics } from "@/hooks/useMetrics";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -45,37 +45,6 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
-const cards = [
-  {
-    label: "Events processed",
-    value: metrics.totalEvents.toLocaleString(),
-    delta: metrics.eventsDelta,
-    icon: Activity,
-    hint: "last 30 days",
-  },
-  {
-    label: "Success rate",
-    value: `${metrics.successRate}%`,
-    delta: metrics.successDelta,
-    icon: CheckCircle2,
-    hint: "rolling 24h",
-  },
-  {
-    label: "Average latency",
-    value: `${metrics.avgLatency} ms`,
-    delta: metrics.latencyDelta,
-    icon: Timer,
-    hint: "p50 delivery",
-  },
-  {
-    label: "Active endpoints",
-    value: String(metrics.activeEndpoints),
-    delta: metrics.endpointsDelta,
-    icon: Radio,
-    hint: "receiving traffic",
-  },
-];
-
 const barColors = ["var(--color-chart-2)", "var(--color-destructive)", "var(--color-chart-4)"];
 
 function ChartTooltip({ active, payload, label }: any) {
@@ -94,8 +63,45 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 function DashboardPage() {
-  const { events, isLoading } = useEvents();
+  const { data: metricsData, isLoading: isMetricsLoading } = useMetrics();
+  const { events, isLoading: isEventsLoading } = useEvents(0, 6);
   const recent = events.slice(0, 6);
+
+  // Fallback structures if loading or empty
+  const rawMetrics = metricsData?.metrics;
+  const cards = [
+    {
+      label: "Events processed",
+      value: rawMetrics ? rawMetrics.total_events.toLocaleString() : "—",
+      delta: rawMetrics?.events_delta || "—",
+      icon: Activity,
+      hint: "last 30 days",
+    },
+    {
+      label: "Success rate",
+      value: rawMetrics ? `${rawMetrics.success_rate}%` : "—",
+      delta: rawMetrics?.success_delta || "—",
+      icon: CheckCircle2,
+      hint: "rolling 24h",
+    },
+    {
+      label: "P50 Latency",
+      value: rawMetrics ? `${rawMetrics.p50_latency} ms` : "—",
+      delta: rawMetrics?.latency_delta || "—",
+      icon: Timer,
+      hint: "p50 delivery",
+    },
+    {
+      label: "Active endpoints",
+      value: rawMetrics ? String(rawMetrics.active_endpoints) : "—",
+      delta: rawMetrics?.endpoints_delta || "—",
+      icon: Radio,
+      hint: "receiving traffic",
+    },
+  ];
+
+  const throughput = metricsData?.throughput || [];
+  const statusBreakdown = metricsData?.status_breakdown || [];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -107,7 +113,9 @@ function DashboardPage() {
               <c.icon className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold tracking-tight">{c.value}</div>
+              <div className="text-2xl font-semibold tracking-tight">
+                {isMetricsLoading ? "..." : c.value}
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 <span className="font-medium text-emerald-600 dark:text-emerald-400">
                   {c.delta}
@@ -234,7 +242,7 @@ function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {isEventsLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
                     Loading recent webhook events...

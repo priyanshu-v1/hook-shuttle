@@ -72,6 +72,10 @@ CREATE INDEX idx_webhook_events_created ON webhook_events(created_at DESC);
 CREATE INDEX idx_webhook_events_next_retry ON webhook_events(next_retry_at) WHERE next_retry_at IS NOT NULL;
 CREATE INDEX idx_webhook_events_payload_gin ON webhook_events USING gin (raw_payload);
 
+-- Added Optimization Indexes for Retry Sweeps & Metrics API
+CREATE INDEX idx_webhook_events_retry_sweep ON webhook_events (status, next_retry_at) WHERE next_retry_at IS NOT NULL;
+CREATE INDEX idx_webhook_events_user_created ON webhook_events (user_id, created_at DESC);
+
 -- 5. DELIVERY_ATTEMPTS TABLE
 CREATE TABLE delivery_attempts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -83,7 +87,8 @@ CREATE TABLE delivery_attempts (
     error_message TEXT,
     execution_time_ms BIGINT,
     scheduled_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    attempted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+    attempted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    trigger_type VARCHAR(50) DEFAULT 'INITIAL' NOT NULL
 );
 
 CREATE INDEX idx_delivery_attempts_event ON delivery_attempts(event_id);

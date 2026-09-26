@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -24,7 +25,15 @@ import io.github.priyanshu_v1.webhook_gateway.webhooks.dto.WebhookDispatchEvent;
 public class WebhookConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(WebhookConsumer.class);
-    private static final long REDIS_DELAY_CAP_SECONDS = 3600; // 1 Hour
+
+    @Value("${hook-shuttle.retry.redis-delay-cap-seconds:3600}")
+    private long redisDelayCapSeconds;
+    
+    @Value("${hook-shuttle.retry.backoff-base:2}")
+    private double backoffBase;
+    
+    @Value("${hook-shuttle.retry.jitter-seconds:5}")
+    private int jitterSeconds;
 
     private final WebhookEventRepository eventRepository;
     private final DeliveryAttemptRepository attemptRepository;
@@ -110,6 +119,7 @@ public class WebhookConsumer {
         attempt.setResponseBody(responseBody);
         attempt.setErrorMessage(errorMessage);
         attempt.setScheduledAt(Instant.now());
+        attempt.setTriggerType(event.triggerType());
         
         if (responseHeaders != null && !responseHeaders.isEmpty()) {
             attempt.setResponseHeaders(objectMapper.valueToTree(responseHeaders));
@@ -129,12 +139,12 @@ public class WebhookConsumer {
         // 3. Failure Case -> Evaluate Retries
         if (event.hasRetriesRemaining()) {
             WebhookDispatchEvent nextEvent = event.nextAttempt();
-            long delaySeconds = nextEvent.calculateBackoffDelaySeconds();
+            long delaySeconds = nextEvent.calculateBackoffDelaySeconds(backoffBase, jitterSeconds);
             Instant nextRetryTime = Instant.now().plusSeconds(delaySeconds);
 
             webhookEvent.setNextRetryAt(nextRetryTime);
 
-            if (delaySeconds <= REDIS_DELAY_CAP_SECONDS) {
+            if (delaySeconds <= redisDelayCapSeconds) {
                 // In-Cap Retry: Route to Redisson RDelayedQueue
                 webhookEvent.setStatus("IN_REDIS_RETRY");
                 eventRepository.save(webhookEvent);

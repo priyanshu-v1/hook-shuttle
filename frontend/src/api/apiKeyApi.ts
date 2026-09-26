@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { apiKeys as seedApiKeys, type ApiKey } from "@/lib/mock-data";
+import { apiKeys as seedApiKeys, SpringPage, type ApiKey } from "@/lib/mock-data";
 
 const USE_MOCK = import.meta.env["VITE_USE_MOCK"] === "true";
 const STORAGE_KEY = "hook_shuttle_api_keys";
@@ -17,13 +17,22 @@ function saveLocalApiKeys(keys: ApiKey[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
 }
 
-export async function fetchApiKeys(): Promise<ApiKey[]> {
+export async function fetchApiKeys(page: number, size: number): Promise<SpringPage<ApiKey>> {
   if (USE_MOCK) {
-    return getLocalApiKeys();
-  }
-  return apiClient.get("/api/v1/api-keys");
-}
+    const all = getLocalApiKeys();
+    const start = page * size;
+    const content = all.slice(start, start + size);
 
+    return {
+      content,
+      total_elements: all.length,
+      total_pages: Math.ceil(all.length / size),
+      number: page,
+      size,
+    };
+  }
+  return apiClient.get(`/api/v1/api-keys?page=${page}&size=${size}`);
+}
 export async function createApiKey(data: {
   key_name: string;
   live: boolean;

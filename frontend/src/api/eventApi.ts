@@ -3,6 +3,7 @@ import {
   webhookEvents as seedEvents,
   type WebhookEvent,
   type DeliveryAttempt,
+  SpringPage,
 } from "@/lib/mock-data";
 
 const USE_MOCK = import.meta.env["VITE_USE_MOCK"] === "true";
@@ -26,13 +27,39 @@ function saveLocalRawEvents(events: RawStoredEvent[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
 }
 
-export async function fetchEvents(): Promise<WebhookEvent[]> {
+export async function fetchEvents(
+  page: number,
+  size: number,
+  status?: string
+): Promise<SpringPage<WebhookEvent>> {
   if (USE_MOCK) {
     const raw = getLocalRawEvents();
-    // Return events without the heavy attempts array to mirror production list endpoint
-    return raw.map(({ attempts, ...event }) => ({ ...event, attempts_count: attempts.length }));
+    const filteredRaw = status && status !== "ALL" 
+      ? raw.filter((e) => e.status === status)
+      : raw;
+    
+    const mapped = filteredRaw.map(({ attempts, ...event }) => ({ 
+      ...event, 
+      attempts_count: attempts.length 
+    }));
+    
+    const start = page * size;
+    const content = mapped.slice(start, start + size);
+
+    return {
+      content,
+      total_elements: mapped.length,
+      total_pages: Math.ceil(mapped.length / size),
+      number: page,
+      size,
+    };
   }
-  return apiClient.get("/api/v1/events");
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    ...(status && status !== "ALL" ? { status } : {}),
+  });
+  return apiClient.get(`/api/v1/events?${queryParams.toString()}`);
 }
 
 export async function fetchEventAttempts(eventId: string): Promise<DeliveryAttempt[]> {
@@ -42,4 +69,27 @@ export async function fetchEventAttempts(eventId: string): Promise<DeliveryAttem
     return event ? event.attempts : [];
   }
   return apiClient.get(`/api/v1/events/${eventId}/attempts`);
+}
+
+export async function replayEvent(eventId: string): Promise<void> {
+  if (USE_MOCK) {
+    const raw = getLocalRawEvents();
+    const event = raw.find((e) => e.id === eventId);
+    if (event) {
+      const newAttempt: DeliveryAttempt = {
+        attempt: event.attempts.length + 1,
+        status_code: 200,
+        execution_time_ms: Math.floor(Math.random() * 150) + 50,
+        attempted_at: new Date().toISOString(),
+        error_message: null,
+        headers: { "X-Webhook-Event": event.event_type, "X-Manual-Replay": "true" },
+        trigger_type: "MANUAL_REPLAY"
+      };
+      event.attempts.push(newAttempt);
+      event.status = "SUCCESS";
+      saveLocalRawEvents(raw);
+    }
+    return;
+  }
+  return apiClient.post(`/api/v1/events/${eventId}/replay`, {});
 }

@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { endpoints as seedEndpoints, type Endpoint } from "@/lib/mock-data";
+import { endpoints as seedEndpoints, type Endpoint, type SpringPage } from "@/lib/mock-data";
 
 const USE_MOCK = import.meta.env["VITE_USE_MOCK"] === "true";
 const STORAGE_KEY = "hook_shuttle_endpoints";
@@ -17,11 +17,21 @@ function saveLocalEndpoints(endpoints: Endpoint[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(endpoints));
 }
 
-export async function fetchEndpoints(): Promise<Endpoint[]> {
+export async function fetchEndpoints(page: number, size: number): Promise<SpringPage<Endpoint>> {
   if (USE_MOCK) {
-    return getLocalEndpoints();
+    const all =  getLocalEndpoints();
+    const start = page * size;
+    const content = all.slice(start, start + size);
+
+    return {
+      content,
+      total_elements: all.length,
+      total_pages: Math.ceil(all.length / size),
+      number: page,
+      size,
+    };
   }
-  return apiClient.get("/api/v1/endpoints");
+  return apiClient.get(`/api/v1/endpoints?page=${page}&size=${size}`);
 }
 
 export async function createEndpoint(data: {

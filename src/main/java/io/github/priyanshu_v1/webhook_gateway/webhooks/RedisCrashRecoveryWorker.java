@@ -1,6 +1,7 @@
 package io.github.priyanshu_v1.webhook_gateway.webhooks;
 
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,60 +22,57 @@ import io.github.priyanshu_v1.webhook_gateway.webhooks.dto.WebhookDispatchEvent;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Component
-public class ColdRetryScheduledWorker {
+public class RedisCrashRecoveryWorker {
 
-    private static final Logger log = LoggerFactory.getLogger(ColdRetryScheduledWorker.class);
+    private static final Logger log = LoggerFactory.getLogger(RedisCrashRecoveryWorker.class);
 
     private final WebhookEventRepository eventRepository;
     private final DeliveryAttemptRepository attemptRepository;
-    private final AsyncRabbitPublisher asyncRabbitPublisher;
+    private final RedissonRetryQueueService retryQueueService;
     private final ObjectMapper objectMapper;
     private final EncryptionService encryptionService;
     private final TransactionTemplate transactionTemplate;
 
-    public ColdRetryScheduledWorker(
+    public RedisCrashRecoveryWorker(
             WebhookEventRepository eventRepository,
             DeliveryAttemptRepository attemptRepository,
+            RedissonRetryQueueService retryQueueService,
             ObjectMapper objectMapper,
-            AsyncRabbitPublisher asyncRabbitPublisher,
             EncryptionService encryptionService,
             TransactionTemplate transactionTemplate
     ) {
         this.eventRepository = eventRepository;
         this.attemptRepository = attemptRepository;
-        this.asyncRabbitPublisher = asyncRabbitPublisher;
+        this.retryQueueService = retryQueueService;
         this.objectMapper = objectMapper;
         this.encryptionService = encryptionService;
         this.transactionTemplate = transactionTemplate;
     }
 
-    @Scheduled(cron = "0/30 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
     @SchedulerLock(
-        name = "ColdRetryScheduledWorker_pollColdRetries", 
-        lockAtMostFor = "PT2M", 
+        name = "RedisRecoverySweeper_sweepOrphanedRetries", 
+        lockAtMostFor = "PT10M", // Generous headroom for massive backlogs
         lockAtLeastFor = "PT5S"
     )
-    public void pollColdRetries() {
-        int batchSize = 5;
+    public void sweepOrphanedRetries() {
+        int batchSize = 50;
         Page<WebhookEvent> batch;
-        
+
         do {
             Instant now = Instant.now();
             Pageable pageable = PageRequest.of(0, batchSize);
-            
-            // Execute each batch in its own short-lived transaction
+
+            // Process each page in its own short-lived transaction
             batch = transactionTemplate.execute(status -> {
-                Page<WebhookEvent> currentBatch = eventRepository.findByStatusAndNextRetryAtLessThanEqualWithDetails(
-                    "COLD_RETRY_SCHEDULED", 
-                    now, 
-                    pageable
-                );
+                Page<WebhookEvent> currentBatch = eventRepository
+                        .findByStatusAndNextRetryAtLessThanEqualWithDetails("IN_REDIS_RETRY", now, pageable);
 
                 if (currentBatch.isEmpty()) {
                     return currentBatch;
                 }
 
-                log.info("Processing cold retry batch of size: {}", currentBatch.getNumberOfElements());
+                log.info("Processing orphaned Redis retry batch of size: {}", currentBatch.getNumberOfElements());
 
                 for (WebhookEvent event : currentBatch) {
                     try {
@@ -86,7 +84,7 @@ public class ColdRetryScheduledWorker {
                             event.setStatus("FAILED");
                             event.setNextRetryAt(null);
                             eventRepository.save(event);
-                            log.warn("Cold retry event {} exceeded max retries ({}). Marked as FAILED.", 
+                            log.warn("Recovered event {} exceeded max retries ({}). Marked as FAILED.", 
                                     event.getId(), endpoint.getMaxRetries());
                             continue;
                         }
@@ -112,18 +110,18 @@ public class ColdRetryScheduledWorker {
                                 encryptedPayload,
                                 currentAttempt,
                                 endpoint.getMaxRetries(),
-                                "COLD_RETRY"
+                                "REDIS_RETRY"
                         );
 
-                        // Asynchronous fire-and-forget RabbitMQ publish
-                        asyncRabbitPublisher.publishEventAsync(dispatchEvent);
+                        // Push back to Redisson with 0 delay for immediate recovery
+                        retryQueueService.scheduleRetry(dispatchEvent, 0, TimeUnit.SECONDS);
 
-                        // Transition status so it drops out of the COLD_RETRY_SCHEDULED queue
+                        // Transition status to prevent infinite re-processing loops
                         event.setStatus("DISPATCHING");
                         eventRepository.save(event);
 
                     } catch (Exception ex) {
-                        log.error("Failed to re-queue cold retry event {}: {}", event.getId(), ex.getMessage(), ex);
+                        log.error("Failed to recover orphaned Redis retry event {}: {}", event.getId(), ex.getMessage(), ex);
                     }
                 }
 

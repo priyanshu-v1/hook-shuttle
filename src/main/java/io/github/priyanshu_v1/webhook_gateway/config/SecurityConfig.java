@@ -29,10 +29,10 @@ public class SecurityConfig {
     private final ApiKeyRepository apiKeyRepository;
     private final PasswordEncoder passwordEncoder;
     
-    @Value("${webhook-gateway.cors.enabled:false}")
+    @Value("${hook-shuttle.cors.enabled:false}")
     private boolean corsEnabled;
 
-    @Value("${webhook-gateway.cors.allowed-origins:}")
+    @Value("${hook-shuttle.cors.allowed-origins:}")
     private String allowedOriginsString;
 
     public SecurityConfig(
@@ -45,11 +45,12 @@ public class SecurityConfig {
     }
 
     
+    // 0. Public Static Assets & Test Webhooks Chain (Bypasses Auth & Filters)
     @Bean
     @Order(0)
-    public SecurityFilterChain publicMockSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicStaticAndMockSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher("/", "/index.html", "/static/**", "/assets/**", "/api/test-webhook/**")
+                .securityMatcher("/", "/index.html", "/static/**", "/assets/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();

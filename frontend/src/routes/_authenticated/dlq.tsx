@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, Loader2, RotateCcw, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Copy, History, Loader2, RotateCcw, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { ListPagination } from "@/components/list-pagination";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,51 +32,47 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { eventTypeOptions, webhookEvents, type WebhookEvent } from "@/lib/mock-data";
+import { useEventAttempts, useEvents } from "@/hooks/useEvents";
 
-import { eventTypeOptions, type WebhookEvent } from "@/lib/mock-data";
-import { useEvents, useEventAttempts } from "@/hooks/useEvents";
-import { ListPagination } from "@/components/list-pagination";
-
-export const Route = createFileRoute("/_authenticated/events")({
+export const Route = createFileRoute("/_authenticated/dlq")({
   head: () => ({
     meta: [
-      { title: "Webhook Events · hook-shuttle Console" },
+      { title: "Dead Letter Queue · hook-shuttle Console" },
       {
         name: "description",
         content:
-          "Search the hook-shuttle audit trail: filter events by status, type or payload and inspect raw JSON and delivery attempts.",
+          "Inspect failed webhook deliveries in the hook-shuttle dead letter queue and replay them manually with one click.",
       },
-      { property: "og:title", content: "Webhook Events · hook-shuttle Console" },
+      { property: "og:title", content: "Dead Letter Queue · hook-shuttle Console" },
       {
         property: "og:description",
-        content: "Searchable webhook audit trail with raw payloads and delivery attempt logs.",
+        content:
+          "Failed webhook deliveries with raw payloads, full attempt logs and one-click manual replay.",
       },
     ],
   }),
-  component: EventsPage,
+  component: DlqPage,
 });
 
 function time(iso: string) {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" });
 }
 
-function EventsPage() {
+function DlqPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { events, totalElements, isLoading } = useEvents(page - 1, pageSize);
-  const [status, setStatus] = useState("ALL");
+  const { events, totalElements, isLoading, replayEvent, isReplaying } = useEvents(page - 1, pageSize, "FAILED");
   const [type, setType] = useState("ALL");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<WebhookEvent | null>(null);
 
-  // Lazily fetch delivery attempts only when an event is selected in the drawer
   const { attempts, isLoadingAttempts } = useEventAttempts(selected?.id ?? null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return events.filter((e) => {
-      if (status !== "ALL" && e.status !== status) return false;
       if (type !== "ALL" && e.event_type !== type) return false;
       if (!q) return true;
       return (
@@ -85,21 +82,21 @@ function EventsPage() {
         JSON.stringify(e.payload).toLowerCase().includes(q)
       );
     });
-  }, [events, status, type, query]);
+  }, [events, type, query]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <div>
-        <h2 className="text-lg font-semibold tracking-tight">Events & audit trail</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Dead letter queue</h2>
         <p className="text-sm text-muted-foreground">
-          Every event received, with full payload and delivery attempt history.
+          Deliveries that exhausted all retries. Inspect the failure and replay manually.
         </p>
       </div>
 
       <Card>
         <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-base">{filtered.length} events</CardTitle>
+            <CardTitle className="text-base">{filtered.length} failed events</CardTitle>
             <CardDescription>Payload search matches any value inside the JSON body</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -107,23 +104,21 @@ function EventsPage() {
               <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
               <Input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Search id, url or payload…"
                 className="w-64 pl-8"
               />
             </div>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All statuses</SelectItem>
-                <SelectItem value="SUCCESS">Success</SelectItem>
-                <SelectItem value="FAILED">Failed</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={type} onValueChange={setType}>
+            <Select
+              value={type}
+              onValueChange={(value) => {
+                setType(value);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -136,14 +131,14 @@ function EventsPage() {
                 ))}
               </SelectContent>
             </Select>
-            {(status !== "ALL" || type !== "ALL" || query) && (
+            {(type !== "ALL" || query) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setStatus("ALL");
                   setType("ALL");
                   setQuery("");
+                  setPage(1);
                 }}
               >
                 <RotateCcw className="size-4" /> Reset
@@ -157,9 +152,8 @@ function EventsPage() {
               <TableRow>
                 <TableHead>Event ID</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Received</TableHead>
-                <TableHead className="text-right">Latency</TableHead>
+                <TableHead>Target URL</TableHead>
+                <TableHead>Failed at</TableHead>
                 <TableHead className="text-right">Attempts</TableHead>
                 <TableHead className="text-right">Status</TableHead>
               </TableRow>
@@ -168,11 +162,11 @@ function EventsPage() {
               {isLoading && (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="py-12 text-center text-sm text-muted-foreground"
                   >
                     <Loader2 className="mx-auto size-6 animate-spin" />
-                    <span className="mt-2 block">Loading events...</span>
+                    <span className="mt-2 block">Loading DLQ events...</span>
                   </TableCell>
                 </TableRow>
               )}
@@ -185,14 +179,11 @@ function EventsPage() {
                   >
                     <TableCell className="font-mono text-xs">{e.id}</TableCell>
                     <TableCell className="text-sm">{e.event_type}</TableCell>
-                    <TableCell className="max-w-[240px] truncate text-sm text-muted-foreground">
+                    <TableCell className="max-w-[260px] truncate text-sm text-muted-foreground">
                       {e.target_url}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {time(e.received_at)}
-                    </TableCell>
-                    <TableCell className="text-right text-sm">
-                      {e.latency_ms ? `${e.latency_ms} ms` : "—"}
                     </TableCell>
                     <TableCell className="text-right text-sm">{e.attempts_count ?? "—"}</TableCell>
                     <TableCell className="text-right">
@@ -203,10 +194,10 @@ function EventsPage() {
               {!isLoading && filtered.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="py-12 text-center text-sm text-muted-foreground"
                   >
-                    No events match these filters.
+                    The dead letter queue is empty — no failed events match these filters.
                   </TableCell>
                 </TableRow>
               )}
@@ -219,7 +210,7 @@ function EventsPage() {
             onPageChange={setPage}
             onPageSizeChange={(size) => {
               setPageSize(size);
-              setPage(1); // Reset to page 1 on size change
+              setPage(1);
             }}
           />
         </CardContent>
@@ -235,19 +226,33 @@ function EventsPage() {
                   <StatusBadge status={selected.status} />
                 </SheetTitle>
                 <SheetDescription>
-                  {selected.event_type} · {time(selected.received_at)}
+                  {selected.event_type} · failed {time(selected.received_at)}
                 </SheetDescription>
               </SheetHeader>
 
               <div className="space-y-5 px-4 pb-8">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Manual replay redelivers the stored payload to the target endpoint.
+                  </p>
+                  <Button size="sm" disabled={isReplaying} onClick={() => replayEvent(selected.id)}>
+                    {isReplaying ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <RotateCcw className="size-4" />
+                    )}
+                    Replay Event
+                  </Button>
+                </div>
+
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <dt className="text-xs text-muted-foreground">Endpoint</dt>
                     <dd className="font-mono text-xs">{selected.endpoint_id}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Latency</dt>
-                    <dd>{selected.latency_ms ? `${selected.latency_ms} ms` : "pending"}</dd>
+                    <dt className="text-xs text-muted-foreground">Failed attempts</dt>
+                    <dd>{attempts.length}</dd>
                   </div>
                   <div className="col-span-2">
                     <dt className="text-xs text-muted-foreground">Target URL</dt>

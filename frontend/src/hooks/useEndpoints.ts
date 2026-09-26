@@ -2,12 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchEndpoints, createEndpoint, toggleEndpointStatus } from "@/api/endpointApi";
 import { toast } from "sonner";
 
-export function useEndpoints() {
+export function useEndpoints(page: number, size: number) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["endpoints"],
-    queryFn: fetchEndpoints,
+    queryKey: ["endpoints", page, size],
+    queryFn: () => fetchEndpoints(page, size),
   });
 
   const createMutation = useMutation({
@@ -33,7 +33,8 @@ export function useEndpoints() {
 
   return {
     ...query,
-    endpoints: query.data || [],
+    endpoints: query.data?.content || [],
+    totalElements: query.data?.total_elements || 0,
     createEndpoint: createMutation.mutateAsync,
     toggleEndpoint: toggleMutation.mutate,
     isCreating: createMutation.isPending,

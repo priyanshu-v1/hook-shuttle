@@ -2,10 +2,10 @@ package io.github.priyanshu_v1.webhook_gateway.endpoints;
 
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,10 +66,9 @@ public class EndpointService {
     }
 
     @Transactional(readOnly = true)
-    public List<EndpointResponse> getEndpointsByUser(UUID userId) {
-        return endpointRepository.findByUser_Id(userId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<EndpointResponse> getEndpointsByUser(UUID userId, Pageable pageable) {
+        return endpointRepository.findByUser_Id(userId, pageable)
+                .map(this::mapToResponse);
     }
 
     @Transactional

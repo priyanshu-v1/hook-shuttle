@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, Eye, EyeOff, Plus, Search } from "lucide-react";
+import { Check, Copy, KeyRound, Plus, Search, TriangleAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useEndpoints } from "@/hooks/useEndpoints";
+import { ListPagination } from "@/components/list-pagination";
 
 export const Route = createFileRoute("/_authenticated/endpoints")({
   head: () => ({
@@ -54,19 +55,18 @@ export const Route = createFileRoute("/_authenticated/endpoints")({
   component: EndpointsPage,
 });
 
-function randomSecret() {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let out = "";
-  for (let i = 0; i < 22; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return `whsec_${out}`;
-}
-
 function EndpointsPage() {
-  const { endpoints, createEndpoint, toggleEndpoint, isCreating } = useEndpoints();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
+  const { endpoints, createEndpoint, toggleEndpoint, isCreating, totalElements } = useEndpoints(page - 1, pageSize);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [open, setOpen] = useState(false);
-  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  
+  // States for one-time signing secret reveal modal
+  const [newSecret, setNewSecret] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [form, setForm] = useState({
     target_url: "",
@@ -89,17 +89,12 @@ function EndpointsPage() {
     [endpoints, query, statusFilter],
   );
 
-  function copy(value: string, label: string) {
-    void navigator.clipboard.writeText(value);
-    toast.success(`${label} copied to clipboard`);
-  }
-
   async function handleCreate() {
     if (!form.target_url.startsWith("http")) {
       toast.error("Target URL must start with http:// or https://");
       return;
     }
-    await createEndpoint({
+    const result = await createEndpoint({
       target_url: form.target_url,
       description: form.description || "No description",
       rate_limit_per_sec: Number(form.rate_limit_per_sec) || 60,
@@ -107,6 +102,7 @@ function EndpointsPage() {
       max_retries: Number(form.max_retries) || 3,
       active: form.active,
     });
+    
     setOpen(false);
     setForm({
       target_url: "",
@@ -116,6 +112,12 @@ function EndpointsPage() {
       max_retries: "3",
       active: true,
     });
+    setCopied(false);
+
+    // Capture the secret returned from creation response for one-time reveal
+    if (result && typeof result === "object" && "secret_key" in result && result.secret_key) {
+      setNewSecret(String(result.secret_key));
+    }
   }
 
   return (
@@ -167,7 +169,6 @@ function EndpointsPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Target URL</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Secret</TableHead>
                 <TableHead className="text-right">Rate/s</TableHead>
                 <TableHead className="text-right">Timeout</TableHead>
                 <TableHead className="text-right">Retries</TableHead>
@@ -181,35 +182,6 @@ function EndpointsPage() {
                   <TableCell className="font-mono text-xs">{r.id}</TableCell>
                   <TableCell className="max-w-[260px] truncate text-sm">{r.target_url}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{r.description}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-                        {revealed[r.id] ? r.secret_key : "whsec_••••••••••"}
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7"
-                        onClick={() => setRevealed((s) => ({ ...s, [r.id]: !s[r.id] }))}
-                        aria-label="Reveal secret"
-                      >
-                        {revealed[r.id] ? (
-                          <EyeOff className="size-3.5" />
-                        ) : (
-                          <Eye className="size-3.5" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7"
-                        onClick={() => copy(r.secret_key, "Signing secret")}
-                        aria-label="Copy secret"
-                      >
-                        <Copy className="size-3.5" />
-                      </Button>
-                    </div>
-                  </TableCell>
                   <TableCell className="text-right text-sm">{r.rate_limit_per_sec}</TableCell>
                   <TableCell className="text-right text-sm">{r.timeout_ms} ms</TableCell>
                   <TableCell className="text-right text-sm">{r.max_retries}</TableCell>
@@ -227,6 +199,16 @@ function EndpointsPage() {
               ))}
             </TableBody>
           </Table>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalElements}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
         </CardContent>
       </Card>
 
@@ -306,7 +288,60 @@ function EndpointsPage() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreate}>{isCreating ? "Creating..." : "Create endpoint"}</Button>
+            <Button onClick={handleCreate}>
+              <KeyRound className="size-4" /> {isCreating ? "Creating..." : "Create endpoint"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* One-time signing secret reveal dialog */}
+      <Dialog
+        open={newSecret !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setNewSecret(null);
+            setCopied(false);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Copy your signing secret</DialogTitle>
+            <DialogDescription>
+              This is the only time the full signing secret will be visible.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+              <p>Once you close this dialog the signing secret cannot be retrieved again.</p>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 p-3">
+              <code className="min-w-0 flex-1 truncate font-mono text-xs">{newSecret}</code>
+              <Button
+                size="sm"
+                variant={copied ? "secondary" : "default"}
+                onClick={() => {
+                  void navigator.clipboard.writeText(newSecret ?? "");
+                  setCopied(true);
+                  toast.success("Signing secret copied");
+                }}
+              >
+                {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setNewSecret(null);
+                setCopied(false);
+              }}
+            >
+              I've stored it safely
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

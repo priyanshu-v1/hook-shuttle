@@ -29,6 +29,7 @@ export interface DeliveryAttempt {
   error_message: string | null;
   attempted_at: string;
   headers: Record<string, string>;
+  trigger_type: string;
 }
 
 export interface WebhookEvent {
@@ -44,10 +45,18 @@ export interface WebhookEvent {
   attempts_count?: number;
 }
 
+export interface SpringPage<T> {
+  content: T[];
+  total_elements: number;
+  total_pages: number;
+  number: number;
+  size: number;
+}
+
 export const metrics = {
   totalEvents: 1_284_930,
   successRate: 99.12,
-  avgLatency: 143,
+  p50Latency: 143,
   activeEndpoints: 18,
   eventsDelta: "+12.4%",
   successDelta: "+0.3%",
@@ -226,6 +235,7 @@ function attemptsFor(status: EventStatus, i: number, at: string): DeliveryAttemp
     "x-hookshuttle-signature": `t=178900${i},v1=9f2c${i}a7b41e0d`,
     "x-hookshuttle-delivery": `dlv_${7000 + i}`,
   };
+
   if (status === "SUCCESS") {
     const retried = i % 5 === 0;
     return [
@@ -238,6 +248,7 @@ function attemptsFor(status: EventStatus, i: number, at: string): DeliveryAttemp
               error_message: "Bad gateway from upstream",
               attempted_at: at,
               headers,
+              trigger_type: "INITIAL",
             },
           ]
         : []),
@@ -248,20 +259,35 @@ function attemptsFor(status: EventStatus, i: number, at: string): DeliveryAttemp
         error_message: null,
         attempted_at: at,
         headers,
+        trigger_type: retried ? "SCHEDULED_RETRY" : "INITIAL",
       },
     ];
   }
+
   if (status === "FAILED") {
-    return [1, 2, 3].map((n) => ({
-      attempt: n,
-      status_code: n === 3 ? null : 500,
-      execution_time_ms: n === 3 ? 5000 : 412 + n * 90,
-      error_message:
-        n === 3 ? "Timeout after 5000ms (no response)" : "Internal Server Error from target",
-      attempted_at: at,
-      headers,
-    }));
+    return [
+      {
+        attempt: 1,
+        status_code: 500,
+        execution_time_ms: 4012,
+        error_message: "Internal Server Error from upstream",
+        attempted_at: at,
+        headers,
+        trigger_type: "INITIAL",
+      },
+      {
+        attempt: 2,
+        status_code: 503,
+        execution_time_ms: 5000,
+        error_message: "Service Unavailable - Max retries exceeded",
+        attempted_at: at,
+        headers,
+        trigger_type: "SCHEDULED_RETRY",
+      },
+    ];
   }
+
+  // Fallback for PENDING or other states
   return [
     {
       attempt: 1,
@@ -270,10 +296,10 @@ function attemptsFor(status: EventStatus, i: number, at: string): DeliveryAttemp
       error_message: null,
       attempted_at: at,
       headers,
+      trigger_type: "INITIAL",
     },
   ];
 }
-
 export const webhookEvents: WebhookEvent[] = Array.from({ length: 42 }, (_, i) => {
   const status: EventStatus = i % 11 === 3 ? "FAILED" : i % 17 === 5 ? "PENDING" : "SUCCESS";
   const endpoint = endpoints[i % endpoints.length]!;

@@ -4,19 +4,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.priyanshu_v1.webhook_gateway.api_keys.dto.ApiKeyAuthProjection;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ApiKeyRepository extends JpaRepository<ApiKey, UUID> {
     Optional<ApiKey> findByApiKeyHashAndStatus(String apiKeyHash, String status);
-    List<ApiKey> findByUserId(UUID userId);
+    
+    Page<ApiKey> findByUserId(UUID userId, Pageable pageable);
+    
     Optional<ApiKey> findByIdAndUserId(UUID id, UUID userId);
     List<ApiKey> findByKeyPrefixAndStatus(String keyPrefix, String status);
     

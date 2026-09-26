@@ -35,7 +35,9 @@ public class RetryWorker implements CommandLineRunner {
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
 				// Passive blocking call — waits until an event's delay expires
-				WebhookDispatchEvent event = retryQueueService.pollNextForExecution();
+				WebhookDispatchEvent rawEvent = retryQueueService.pollNextForExecution();
+				
+				WebhookDispatchEvent event = rawEvent.withTriggerType("REDIS_RETRY");
 
 				log.info("Retry delay expired for event {}. Re-enqueuing to RabbitMQ (Attempt {})", event.eventId(),
 						event.attemptNumber());

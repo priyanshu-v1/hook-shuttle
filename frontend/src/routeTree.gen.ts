@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedApiKeysRouteImport } from './routes/_authenticated/api-keys'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDlqRouteImport } from './routes/_authenticated/dlq'
 import { Route as AuthenticatedEndpointsRouteImport } from './routes/_authenticated/endpoints'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
 
@@ -25,6 +27,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedApiKeysRoute = AuthenticatedApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
@@ -33,6 +40,11 @@ const AuthenticatedApiKeysRoute = AuthenticatedApiKeysRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDlqRoute = AuthenticatedDlqRouteImport.update({
+  id: '/dlq',
+  path: '/dlq',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEndpointsRoute = AuthenticatedEndpointsRouteImport.update({
@@ -48,15 +60,19 @@ const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/register': typeof RegisterRoute
   '/api-keys': typeof AuthenticatedApiKeysRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dlq': typeof AuthenticatedDlqRoute
   '/endpoints': typeof AuthenticatedEndpointsRoute
   '/events': typeof AuthenticatedEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/register': typeof RegisterRoute
   '/api-keys': typeof AuthenticatedApiKeysRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dlq': typeof AuthenticatedDlqRoute
   '/endpoints': typeof AuthenticatedEndpointsRoute
   '/events': typeof AuthenticatedEventsRoute
 }
@@ -64,22 +80,40 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/register': typeof RegisterRoute
   '/_authenticated/api-keys': typeof AuthenticatedApiKeysRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dlq': typeof AuthenticatedDlqRoute
   '/_authenticated/endpoints': typeof AuthenticatedEndpointsRoute
   '/_authenticated/events': typeof AuthenticatedEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api-keys' | '/dashboard' | '/endpoints' | '/events'
+  fullPaths:
+    | '/'
+    | '/register'
+    | '/api-keys'
+    | '/dashboard'
+    | '/dlq'
+    | '/endpoints'
+    | '/events'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api-keys' | '/dashboard' | '/endpoints' | '/events'
+  to:
+    | '/'
+    | '/register'
+    | '/api-keys'
+    | '/dashboard'
+    | '/dlq'
+    | '/endpoints'
+    | '/events'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/register'
     | '/_authenticated/api-keys'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dlq'
     | '/_authenticated/endpoints'
     | '/_authenticated/events'
   fileRoutesById: FileRoutesById
@@ -87,6 +121,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -105,6 +140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/api-keys': {
       id: '/_authenticated/api-keys'
       path: '/api-keys'
@@ -117,6 +159,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dlq': {
+      id: '/_authenticated/dlq'
+      path: '/dlq'
+      fullPath: '/dlq'
+      preLoaderRoute: typeof AuthenticatedDlqRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/endpoints': {
@@ -139,6 +188,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedApiKeysRoute: typeof AuthenticatedApiKeysRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDlqRoute: typeof AuthenticatedDlqRoute
   AuthenticatedEndpointsRoute: typeof AuthenticatedEndpointsRoute
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
 }
@@ -146,6 +196,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedApiKeysRoute: AuthenticatedApiKeysRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDlqRoute: AuthenticatedDlqRoute,
   AuthenticatedEndpointsRoute: AuthenticatedEndpointsRoute,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
 }
@@ -156,6 +207,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

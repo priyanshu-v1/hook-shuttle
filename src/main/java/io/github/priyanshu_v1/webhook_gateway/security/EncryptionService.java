@@ -21,7 +21,7 @@ public class EncryptionService {
     private final SecretKey secretKey;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public EncryptionService(@Value("${webhook-gateway.security.encryption-key}") String base64Key) {
+    public EncryptionService(@Value("${hook-shuttle.security.encryption-key}") String base64Key) {
         byte[] decodedKey = Base64.getDecoder().decode(base64Key);
         if (decodedKey.length != 32) {
             throw new IllegalArgumentException("Encryption key must be 256 bits (32 bytes)");

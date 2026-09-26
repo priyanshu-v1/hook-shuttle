@@ -28,10 +28,10 @@ public class AuthController {
 
     private final AuthService authService;
     
-    @Value("${webhook-gateway.auth.refresh.absolute-ceiling}")
+    @Value("${hook-shuttle.auth.refresh.absolute-ceiling}")
     private Duration absoluteCeiling;
 
-    @Value("${webhook-gateway.auth.refresh.secure-cookie}")
+    @Value("${hook-shuttle.auth.refresh.secure-cookie}")
     private boolean secureCookie;
     
     public AuthController(AuthService authService) {

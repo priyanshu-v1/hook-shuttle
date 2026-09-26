@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { loginUser } from "@/api/authApi";
+import { loginUser, RegisterRequest, registerUser } from "@/api/authApi";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Session } from "@/lib/session";
@@ -21,8 +21,26 @@ export function useAuth() {
     },
   });
 
+  const registerMutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: (session: Session, variables: RegisterRequest) => {
+      localStorage.setItem("hookshuttle.session", JSON.stringify(session));
+      toast.success("Admin account created", {
+        description: `${variables.organization_name} workspace is ready — you're signed in as ${variables.email}.`,
+      });
+      navigate({ to: "/dashboard", replace: true });
+    },
+    onError: (error: any) => {
+      toast.error("Account creation failed", { 
+        description: error?.response?.data?.message || error?.message || "Could not register workspace" 
+      });
+    },
+  });
+
   return {
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
+    register: registerMutation.mutateAsync,
+    isRegistering: registerMutation.isPending,
   };
 }

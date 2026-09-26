@@ -2,6 +2,7 @@ package io.github.priyanshu_v1.webhook_gateway.webhooks.dto;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public record WebhookDispatchEvent(
     UUID eventId,
@@ -12,7 +13,8 @@ public record WebhookDispatchEvent(
     String secretKey,
     String payload,
     int attemptNumber,
-    int maxAttempts
+    int maxAttempts,
+    String triggerType
 ) implements Serializable {
 
     /**
@@ -29,24 +31,33 @@ public record WebhookDispatchEvent(
             int maxAttempts
     ) {
         return new WebhookDispatchEvent(
-            eventId, endpointId, userId, eventType, targetUrl, secretKey, payload, 1, maxAttempts
+            eventId, endpointId, userId, eventType, targetUrl, secretKey, payload, 1, maxAttempts, "INITIAL"
         );
     }
 
+    public WebhookDispatchEvent withTriggerType(String newTriggerType) {
+        return new WebhookDispatchEvent(
+            eventId, endpointId, userId, eventType, targetUrl, secretKey, payload, attemptNumber, maxAttempts, newTriggerType
+        );
+    }
+    
     /**
      * Helper to advance attempt counter for subsequent retries
      */
     public WebhookDispatchEvent nextAttempt() {
         return new WebhookDispatchEvent(
-            eventId, endpointId, userId, eventType, targetUrl, secretKey, payload, attemptNumber + 1, maxAttempts
+            eventId, endpointId, userId, eventType, targetUrl, secretKey, payload, attemptNumber + 1, maxAttempts, triggerType
         );
     }
 
     /**
-     * Calculates exponential backoff delay in seconds (2^attemptNumber)
+     * Calculates exponential backoff delay in seconds (base^attemptNumber)
      */
-    public long calculateBackoffDelaySeconds() {
-        return (long) Math.pow(2, attemptNumber);
+    public long calculateBackoffDelaySeconds(double backoffBase, int jitterSeconds) {
+    	long exponentialDelay = (long) Math.pow(backoffBase, attemptNumber);
+        // Add a random jitter between 0 and jitterSeconds
+        int jitter = jitterSeconds > 0 ? ThreadLocalRandom.current().nextInt(jitterSeconds + 1) : 0;
+        return exponentialDelay + jitter;
     }
 
     /**

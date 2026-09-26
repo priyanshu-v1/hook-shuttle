@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Activity, KeyRound, LayoutDashboard, LogOut, Radio, Rocket } from "lucide-react";
+import { Activity, ArchiveX, KeyRound, LayoutDashboard, LogOut, Radio, Rocket } from "lucide-react";
 
 import {
   Sidebar,
@@ -20,6 +20,7 @@ const items = [
   { title: "Endpoints", url: "/endpoints", icon: Radio },
   { title: "API Keys", url: "/api-keys", icon: KeyRound },
   { title: "Events", url: "/events", icon: Activity },
+  { title: "Dead Letter Queue", url: "/dlq", icon: ArchiveX },
 ];
 
 export function AppSidebar() {
