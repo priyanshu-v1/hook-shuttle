@@ -42,6 +42,10 @@ public class WebhookService {
         Endpoint endpoint = endpointRepository.findByIdAndUser_Id(endpointId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Endpoint not found or unauthorized"));
 
+        if (!"ACTIVE".equals(endpoint.getStatus())) {
+            throw new IllegalArgumentException("Endpoint is currently disabled");
+        }
+        
         // 2. Parse payload
         JsonNode jsonPayload;
         try {

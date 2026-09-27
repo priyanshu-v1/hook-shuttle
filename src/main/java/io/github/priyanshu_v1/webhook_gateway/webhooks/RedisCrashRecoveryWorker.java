@@ -88,6 +88,12 @@ public class RedisCrashRecoveryWorker {
                 for (WebhookEvent event : currentBatch) {
                     try {
                         Endpoint endpoint = event.getEndpoint();
+                        
+                        // Guardrail: Skip if the endpoint has been disabled by the user
+                        if (!"ACTIVE".equals(endpoint.getStatus())) {
+                            continue;
+                        }
+                        
                         int currentAttempt = attemptRepository.countByEventId(event.getId()) + 1;
                         
                         // Guardrail: Terminal check if max retries were lowered or exhausted

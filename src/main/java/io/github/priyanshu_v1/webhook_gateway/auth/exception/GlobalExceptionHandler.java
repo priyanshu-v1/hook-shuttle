@@ -25,14 +25,14 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(IllegalArgumentException ex) {
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         Map<String, Object> body = Map.of(
             "timestamp", LocalDateTime.now().toString(),
-            "status", HttpStatus.UNAUTHORIZED.value(),
-            "error", "Unauthorized",
+            "status", HttpStatus.BAD_REQUEST.value(),
+            "error", "Bad Request",
             "message", ex.getMessage()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
     
     @ExceptionHandler(NoHandlerFoundException.class)
