@@ -79,9 +79,10 @@ public class WebhookConsumer {
             webClient.post()
                     .uri(event.targetUrl())
                     .header("Content-Type", "application/json")
-                    .header("X-Webhook-Event", event.eventType())
-                    .header("X-Webhook-Signature", hmacSignature)
-                    .header("X-Webhook-Timestamp", timestamp)
+                    .header("User-Agent", "HookShuttle-Webhook-Agent/1.0")
+                    .header("webhook-event", event.eventType())
+                    .header("webhook-signature", hmacSignature)
+                    .header("webhook-timestamp", timestamp)
                     .bodyValue(decryptedPayload)
                     .exchangeToMono(response -> {
                         long latency = System.currentTimeMillis() - startTime;

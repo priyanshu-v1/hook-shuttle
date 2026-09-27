@@ -37,7 +37,7 @@ public class EndpointService {
         // Generate secure secret key
         byte[] secretBytes = new byte[32];
         secureRandom.nextBytes(secretBytes);
-        String rawSecretKey = "whsec_" + Base64.getUrlEncoder().withoutPadding().encodeToString(secretBytes);
+        String rawSecretKey = "hs_sec_" + Base64.getUrlEncoder().withoutPadding().encodeToString(secretBytes);
         
         // 2. Encrypt secret key for DB storage
         String encryptedSecretKey = encryptionService.encrypt(rawSecretKey);

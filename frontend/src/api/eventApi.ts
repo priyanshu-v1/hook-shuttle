@@ -82,7 +82,7 @@ export async function replayEvent(eventId: string): Promise<void> {
         execution_time_ms: Math.floor(Math.random() * 150) + 50,
         attempted_at: new Date().toISOString(),
         error_message: null,
-        headers: { "X-Webhook-Event": event.event_type, "X-Manual-Replay": "true" },
+        headers: { "webhook-event": event.event_type, "x-manual-replay": "true" },
         trigger_type: "MANUAL_REPLAY"
       };
       event.attempts.push(newAttempt);

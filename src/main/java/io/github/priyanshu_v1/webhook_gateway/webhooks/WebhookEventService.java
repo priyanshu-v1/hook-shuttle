@@ -131,10 +131,11 @@ public class WebhookEventService {
             webClient.post()
                     .uri(targetUrl)
                     .header("Content-Type", "application/json")
-                    .header("X-Webhook-Event", webhookEvent.getEventType())
-                    .header("X-Webhook-Signature", hmacSignature)
-                    .header("X-Webhook-Timestamp", timestamp)
-                    .header("X-Manual-Replay", "true")
+                    .header("User-Agent", "HookShuttle-Webhook-Agent/1.0")
+                    .header("webhook-event", webhookEvent.getEventType())
+                    .header("webhook-signature", hmacSignature)
+                    .header("webhook-timestamp", timestamp)
+                    .header("x-manual-replay", "true")
                     .bodyValue(payloadString)
                     .exchangeToMono(response -> {
                         long latency = System.currentTimeMillis() - startTime;
