@@ -107,6 +107,7 @@ CREATE TABLE refresh_tokens (
 
 CREATE INDEX idx_refresh_tokens_prefix ON refresh_tokens(token_prefix);
 CREATE INDEX idx_refresh_tokens_family ON refresh_tokens(family_id);
+CREATE INDEX idx_refresh_tokens_cleanup ON refresh_tokens(revoked, absolute_expires_at);
 
 -- TIMESTAMP TRIGGER FUNCTION
 CREATE OR REPLACE FUNCTION update_timestamp_column()

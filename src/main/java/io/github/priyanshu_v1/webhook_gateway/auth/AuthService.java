@@ -87,6 +87,17 @@ public class AuthService {
        
         return new AuthResult(authResponse, rawRefreshToken, absoluteCeiling);
     }
+    
+    public void logout(String rawToken) {
+        if (rawToken == null || rawToken.length() < 16) {
+            return;
+        }
+        String prefix = rawToken.substring(0, 16);
+        refreshTokenRepository.findByTokenPrefix(prefix).ifPresent(token -> {
+            token.setRevoked(true);
+            refreshTokenRepository.save(token);
+        });
+    }
 
     public UserResponse getCurrentUser(String email) {
         User user = userRepository.findByEmail(email)
@@ -99,7 +110,6 @@ public class AuthService {
                 user.getCreatedAt()
         );
     }
-    
     
     @Transactional
     public String createRefreshTokenSession(UUID userId) {

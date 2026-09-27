@@ -45,7 +45,7 @@ public class AuthController {
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", result.rawRefreshToken())
                 .httpOnly(true)
                 .secure(secureCookie)
-                .path("/api/v1/auth/refresh")
+                .path("/api/v1/auth")
                 .maxAge(result.cookieMaxAge())
                 .sameSite("Strict")
                 .build();
@@ -62,7 +62,7 @@ public class AuthController {
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", result.rawRefreshToken())
                 .httpOnly(true)
                 .secure(secureCookie) // Set to false if testing locally over HTTP (or true if using HTTPS)
-                .path("/api/v1/auth/refresh")
+                .path("/api/v1/auth")
                 .maxAge(absoluteCeiling) // Uses the injected Duration from application.properties
                 .sameSite("Strict")
                 .build();
@@ -72,6 +72,28 @@ public class AuthController {
                 .body(result.authResponse());
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = "refreshToken", required = false) String rawRefreshToken
+    ) {
+        if (rawRefreshToken != null) {
+            authService.logout(rawRefreshToken);
+        }
+
+        // Expire the cookie immediately on the client side
+        ResponseCookie clearCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(secureCookie)
+                .path("/api/v1/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .build();
+    }
+    
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(authService.getCurrentUser(principal.email()));
@@ -86,7 +108,7 @@ public class AuthController {
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", result.rawRefreshToken())
                 .httpOnly(true)
                 .secure(secureCookie)
-                .path("/api/v1/auth/refresh")
+                .path("/api/v1/auth")
                 .maxAge(result.cookieMaxAge())
                 .sameSite("Strict")
                 .build();

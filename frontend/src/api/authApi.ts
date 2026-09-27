@@ -1,5 +1,5 @@
 import { authApi } from "./client";
-import { signIn as mockSignIn, type Session } from "@/lib/session";
+import { signIn as mockSignIn, signOut, type Session } from "@/lib/session";
 
 
 export interface LoginRequest {
@@ -44,4 +44,11 @@ export async function registerUser(data: RegisterRequest): Promise<Session> {
     email: response.email || data.email,
     token: response.token,
   };
+}
+
+export async function logoutUser(): Promise<void> {
+  if (USE_MOCK) {
+    return signOut();
+  }
+  await authApi.post("/api/v1/auth/logout");
 }

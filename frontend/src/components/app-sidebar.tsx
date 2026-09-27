@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { getSession, signOut } from "@/lib/session";
+import { useAuth } from "@/hooks/useAuth";
 
 const items = [
   { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
@@ -27,6 +28,8 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const email = getSession()?.email ?? "operator@hook-shuttle.io";
+
+  const { logout, isLoggingOut } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -67,9 +70,13 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Sign out"
-              onClick={() => {
-                signOut();
-                navigate({ to: "/", replace: true });
+              disabled={isLoggingOut}
+              onClick={async () => {
+                try {
+                  await logout();
+                } catch {
+                  // Fallback cleanup / navigation handled in mutation definition
+                }
               }}
             >
               <LogOut className="size-4" />

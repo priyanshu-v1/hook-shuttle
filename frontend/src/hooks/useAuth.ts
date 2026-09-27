@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { loginUser, RegisterRequest, registerUser } from "@/api/authApi";
+import { loginUser, logoutUser, RegisterRequest, registerUser } from "@/api/authApi";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Session } from "@/lib/session";
@@ -37,10 +37,28 @@ export function useAuth() {
     },
   });
 
+  const logoutMutation = useMutation({
+    mutationFn: logoutUser,
+    onSuccess: () => {
+      localStorage.removeItem("hookshuttle.session");
+      toast.success("Signed out successfully");
+      navigate({ to: "/", replace: true });
+    },
+    onError: (error: any) => {
+      localStorage.removeItem("hookshuttle.session");
+      navigate({ to: "/", replace: true });
+      toast.error("Signed out with errors", {
+        description: error?.response?.data?.message || error?.message,
+      });
+    },
+  });
+
   return {
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     register: registerMutation.mutateAsync,
     isRegistering: registerMutation.isPending,
+    logout: logoutMutation.mutateAsync,
+    isLoggingOut: logoutMutation.isPending,
   };
 }
