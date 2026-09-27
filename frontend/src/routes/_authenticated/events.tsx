@@ -62,9 +62,9 @@ function time(iso: string) {
 function EventsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  const { events, totalElements, isLoading } = useEvents(page - 1, pageSize);
   const [status, setStatus] = useState("ALL");
+
+  const { events, totalElements, isLoading } = useEvents(page - 1, pageSize, status);
   const [type, setType] = useState("ALL");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<WebhookEvent | null>(null);

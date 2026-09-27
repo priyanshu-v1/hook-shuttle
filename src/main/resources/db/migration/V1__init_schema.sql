@@ -51,7 +51,7 @@ CREATE TABLE endpoints (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE INDEX idx_endpoints_user ON endpoints(user_id);
+CREATE INDEX idx_endpoints_user_created ON endpoints(user_id, created_at DESC);
 
 -- 4. WEBHOOK_EVENTS TABLE
 CREATE TABLE webhook_events (
@@ -66,15 +66,13 @@ CREATE TABLE webhook_events (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE INDEX idx_webhook_events_user_status ON webhook_events(user_id, status);
 CREATE INDEX idx_webhook_events_endpoint ON webhook_events(endpoint_id);
-CREATE INDEX idx_webhook_events_created ON webhook_events(created_at DESC);
 CREATE INDEX idx_webhook_events_next_retry ON webhook_events(next_retry_at) WHERE next_retry_at IS NOT NULL;
 CREATE INDEX idx_webhook_events_payload_gin ON webhook_events USING gin (raw_payload);
 
 -- Added Optimization Indexes for Retry Sweeps & Metrics API
-CREATE INDEX idx_webhook_events_retry_sweep ON webhook_events (status, next_retry_at) WHERE next_retry_at IS NOT NULL;
-CREATE INDEX idx_webhook_events_user_created ON webhook_events (user_id, created_at DESC);
+CREATE INDEX idx_webhook_events_retry_sweep ON webhook_events(status, next_retry_at) WHERE next_retry_at IS NOT NULL;
+CREATE INDEX idx_webhook_events_user_created ON webhook_events(user_id, created_at DESC);
 
 -- 5. DELIVERY_ATTEMPTS TABLE
 CREATE TABLE delivery_attempts (
