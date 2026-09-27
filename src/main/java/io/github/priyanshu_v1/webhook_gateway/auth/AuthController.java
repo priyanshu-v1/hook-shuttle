@@ -73,8 +73,8 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal String email) {
-        return ResponseEntity.ok(authService.getCurrentUser(email));
+    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(authService.getCurrentUser(principal.email()));
     }
     
     @PostMapping("/refresh")

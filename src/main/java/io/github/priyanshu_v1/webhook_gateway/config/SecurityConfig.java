@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -29,7 +30,7 @@ public class SecurityConfig {
     private final ApiKeyRepository apiKeyRepository;
     private final PasswordEncoder passwordEncoder;
     
-    @Value("${hook-shuttle.cors.enabled:false}")
+    @Value("${hook-shuttle.cors.enabled}")
     private boolean corsEnabled;
 
     @Value("${hook-shuttle.cors.allowed-origins:}")
@@ -45,18 +46,8 @@ public class SecurityConfig {
     }
 
     
-    // 0. Public Static Assets & Test Webhooks Chain (Bypasses Auth & Filters)
-    @Bean
-    @Order(0)
-    public SecurityFilterChain publicStaticAndMockSecurityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .securityMatcher("/", "/index.html", "/static/**", "/assets/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .build();
-    }
     
- // 1. Ingestion / Dispatch Engine Chain (Strictly API Key Only)
+    // 1. Ingestion / Dispatch Engine Chain (Strictly API Key Only)
     @Bean
     @Order(1)
     public SecurityFilterChain dispatchSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -97,6 +88,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(jwtService);
 
         return http
+        		.securityMatcher("/api/v1/**")
         		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -108,6 +100,17 @@ public class SecurityConfig {
                 .build();
     }
     
+    // 4. Catch-All Static Assets & SPA Fallback Chain (Only active when frontend serving is enabled)
+    @Bean
+    @Order(4)
+    @ConditionalOnProperty(name = "hook-shuttle.serve-frontend", havingValue = "true", matchIfMissing = true)
+    public SecurityFilterChain publicStaticAndMockSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/", "/index.html", "/favicon.ico", "/static/**", "/assets/**", "/*.js", "/*.css")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .build();
+    }
     
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

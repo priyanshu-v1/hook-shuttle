@@ -26,13 +26,13 @@ public class WebhookConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(WebhookConsumer.class);
 
-    @Value("${hook-shuttle.retry.redis-delay-cap-seconds:3600}")
+    @Value("${hook-shuttle.retry.redis-delay-cap-seconds}")
     private long redisDelayCapSeconds;
     
-    @Value("${hook-shuttle.retry.backoff-base:2}")
+    @Value("${hook-shuttle.retry.backoff-base}")
     private double backoffBase;
     
-    @Value("${hook-shuttle.retry.jitter-seconds:5}")
+    @Value("${hook-shuttle.retry.jitter-seconds}")
     private int jitterSeconds;
 
     private final WebhookEventRepository eventRepository;

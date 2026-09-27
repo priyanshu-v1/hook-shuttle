@@ -12,13 +12,13 @@ import java.util.List;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${hook-shuttle.redis.mode:single}")
+    @Value("${hook-shuttle.redis.mode}")
     private String redisMode;
 
-    @Value("${hook-shuttle.redis.host:localhost}")
+    @Value("${hook-shuttle.redis.host}")
     private String host;
 
-    @Value("${hook-shuttle.redis.port:6379}")
+    @Value("${hook-shuttle.redis.port}")
     private int port;
 
     @Value("${hook-shuttle.redis.cluster-nodes:}")
@@ -29,6 +29,12 @@ public class RedissonConfig {
         Config config = new Config();
 
         if ("cluster".equalsIgnoreCase(redisMode)) {
+        	
+        	// Fail fast if cluster mode is on but no nodes are provided!
+            if (clusterNodes == null || clusterNodes.isEmpty()) {
+                throw new IllegalStateException("Redis mode is set to 'cluster', but 'hook-shuttle.redis.cluster-nodes' is missing or empty!");
+            }
+        	
             var clusterConfig = config.useClusterServers();
             for (String node : clusterNodes) {
                 clusterConfig.addNodeAddress("redis://" + node);

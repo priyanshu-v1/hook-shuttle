@@ -12,11 +12,14 @@ import java.io.IOException;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Value("${hook-shuttle.serve-frontend:true}")
+    @Value("${hook-shuttle.serve-frontend}")
     private boolean serveFrontend;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    	if (!serveFrontend) {
+            return;
+        }
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/static/")
                 .resourceChain(true)
