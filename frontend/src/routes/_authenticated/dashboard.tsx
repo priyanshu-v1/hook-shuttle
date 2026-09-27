@@ -126,14 +126,25 @@ function DashboardPage() {
           </Card>
         ))}
       </div>
-
       <div className="grid gap-4 lg:grid-cols-3">
+        {/* Delivery Throughput Card */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Delivery throughput</CardTitle>
             <CardDescription>Deliveries vs failures over the last 24 hours</CardDescription>
           </CardHeader>
-          <CardContent className="h-72">
+          <CardContent className="h-72 relative">
+            {throughput.length === 0 ||
+            throughput.every((d) => d.delivered === 0 && d.failed === 0) ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[1px]">
+                <p className="text-sm font-medium text-muted-foreground">
+                  No events recorded in the last 24 hours
+                </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  Waiting for webhook traffic...
+                </p>
+              </div>
+            ) : null}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={throughput} margin={{ left: -12, right: 8, top: 4 }}>
                 <defs>
@@ -182,12 +193,21 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Status Breakdown Card */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Status breakdown</CardTitle>
             <CardDescription>Last 24 hours by delivery outcome</CardDescription>
           </CardHeader>
-          <CardContent className="h-72">
+          <CardContent className="h-72 relative">
+            {statusBreakdown.length === 0 || statusBreakdown.every((d) => d.value === 0) ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[1px]">
+                <p className="text-sm font-medium text-muted-foreground">
+                  No status data available
+                </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Outcomes will appear here</p>
+              </div>
+            ) : null}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={statusBreakdown} margin={{ left: -12, right: 8, top: 4 }}>
                 <CartesianGrid

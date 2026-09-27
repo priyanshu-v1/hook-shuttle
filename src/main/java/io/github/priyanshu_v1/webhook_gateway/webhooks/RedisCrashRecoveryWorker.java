@@ -1,5 +1,6 @@
 package io.github.priyanshu_v1.webhook_gateway.webhooks;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
@@ -49,22 +50,32 @@ public class RedisCrashRecoveryWorker {
         this.transactionTemplate = transactionTemplate;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 5/15 * * * *")
     @SchedulerLock(
         name = "RedisRecoverySweeper_sweepOrphanedRetries", 
-        lockAtMostFor = "PT10M", // Generous headroom for massive backlogs
+        lockAtMostFor = "PT14M", // Generous headroom for massive backlogs
         lockAtLeastFor = "PT5S"
     )
     public void sweepOrphanedRetries() {
-        int batchSize = 50;
+        int batchSize = 100;
+        
+        Instant startTime = Instant.now();
+        Duration maxRuntime = Duration.ofMinutes(10);
+        
         Page<WebhookEvent> batch;
 
         do {
+        	// Safety check: Have we run out of our allocated time window?
+            if (Duration.between(startTime, Instant.now()).compareTo(maxRuntime) > 0) {
+                log.warn("Redis crash recovery worker reached max runtime window (10 min). Yielding lock gracefully for the next tick.");
+                break;
+            }
+        	
             Instant now = Instant.now();
             Pageable pageable = PageRequest.of(0, batchSize);
 
             // Process each page in its own short-lived transaction
-            batch = transactionTemplate.execute(status -> {
+            batch = transactionTemplate.execute(_ -> {
                 Page<WebhookEvent> currentBatch = eventRepository
                         .findByStatusAndNextRetryAtLessThanEqualWithDetails("IN_REDIS_RETRY", now, pageable);
 

@@ -59,7 +59,10 @@ public class WebhookConsumer {
         this.webClient = webClient;
     }
 
-    @RabbitListener(queues = RabbitMQConfig.QUEUE)
+    @RabbitListener(
+    		queues = RabbitMQConfig.QUEUE,
+    		concurrency = "${hook-shuttle.rabbitmq.listener.concurrency:3-5}"
+    )
     public void consumeEvent(WebhookDispatchEvent event) {
         long startTime = System.currentTimeMillis();
 

@@ -1,5 +1,6 @@
 package io.github.priyanshu_v1.webhook_gateway.webhooks;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import org.slf4j.Logger;
@@ -48,22 +49,32 @@ public class ColdRetryScheduledWorker {
         this.transactionTemplate = transactionTemplate;
     }
 
-    @Scheduled(cron = "0/30 * * * * *")
+    @Scheduled(cron = "0 0/15 * * * *")
     @SchedulerLock(
         name = "ColdRetryScheduledWorker_pollColdRetries", 
-        lockAtMostFor = "PT2M", 
+        lockAtMostFor = "PT14M", 
         lockAtLeastFor = "PT5S"
     )
     public void pollColdRetries() {
-        int batchSize = 5;
+        int batchSize = 100;
+        
+        Instant startTime = Instant.now();
+        Duration maxRuntime = Duration.ofMinutes(10);
+        
         Page<WebhookEvent> batch;
         
         do {
+        	// Safety check: Have we run out of our allocated time window?
+            if (Duration.between(startTime, Instant.now()).compareTo(maxRuntime) > 0) {
+                log.warn("Cold retry worker reached max runtime window (10 min). Yielding lock gracefully for the next tick.");
+                break;
+            }
+            
             Instant now = Instant.now();
             Pageable pageable = PageRequest.of(0, batchSize);
             
             // Execute each batch in its own short-lived transaction
-            batch = transactionTemplate.execute(status -> {
+            batch = transactionTemplate.execute(_ -> {
                 Page<WebhookEvent> currentBatch = eventRepository.findByStatusAndNextRetryAtLessThanEqualWithDetails(
                     "COLD_RETRY_SCHEDULED", 
                     now, 
