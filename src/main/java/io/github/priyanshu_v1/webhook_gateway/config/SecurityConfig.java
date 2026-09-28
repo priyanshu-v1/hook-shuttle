@@ -106,7 +106,7 @@ public class SecurityConfig {
     @ConditionalOnProperty(name = "hook-shuttle.serve-frontend", havingValue = "true", matchIfMissing = true)
     public SecurityFilterChain publicStaticAndMockSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher("/", "/index.html", "/favicon.ico", "/static/**", "/assets/**", "/*.js", "/*.css")
+                .securityMatcher("/", "/index.html", "/favicon.png", "/static/**", "/assets/**", "/*.js", "/*.css")
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();

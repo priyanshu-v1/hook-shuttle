@@ -1,6 +1,7 @@
 {
   "name": "hook-shuttle-dashboard",
   "private": true,
+  "description": "Secure management console and monitoring dashboard for HookShuttle webhook gateway",
   "sideEffects": false,
   "type": "module",
   "scripts": {
