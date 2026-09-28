@@ -10,7 +10,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 25](https://img.shields.io/badge/Java-25-ED8B00?logo=java&logoColor=white)](https://www.java.com/)
-[![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 
 A high-performance, secure, and observable **Enterprise Webhook Gateway and Management Console**. Built from scratch to handle millions of webhooks with reliable delivery, retries, and real-time observability.
