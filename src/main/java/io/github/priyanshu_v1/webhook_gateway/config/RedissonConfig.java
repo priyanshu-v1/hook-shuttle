@@ -11,15 +11,12 @@ import java.util.List;
 
 @Configuration
 public class RedissonConfig {
-
+	
     @Value("${hook-shuttle.redis.mode}")
     private String redisMode;
 
-    @Value("${hook-shuttle.redis.host}")
-    private String host;
-
-    @Value("${hook-shuttle.redis.port}")
-    private int port;
+    @Value("${hook-shuttle.redis.url}")
+    private String redisUrl;
 
     @Value("${hook-shuttle.redis.cluster-nodes:}")
     private List<String> clusterNodes;
@@ -37,11 +34,11 @@ public class RedissonConfig {
         	
             var clusterConfig = config.useClusterServers();
             for (String node : clusterNodes) {
-                clusterConfig.addNodeAddress("redis://" + node);
+                clusterConfig.addNodeAddress(node);
             }
         } else {
             config.useSingleServer()
-                  .setAddress("redis://" + host + ":" + port);
+                  .setAddress(redisUrl);
         }
 
         return Redisson.create(config);

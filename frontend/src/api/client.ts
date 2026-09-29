@@ -2,14 +2,21 @@ import axios from 'axios';
 import { getSession, setSession, signOut } from '@/lib/session';
 import { AuthResponse } from './authApi';
 
+// Check flags using bracket notation
+const useExternalApi = import.meta.env["VITE_USE_EXTERNAL_API"] === 'true';
+const externalBaseUrl = import.meta.env["VITE_API_BASE_URL"] || '';
+
+// Resolve the dynamic baseURL based on your flag
+const resolvedBaseURL = useExternalApi ? externalBaseUrl : '';
+
 // 1. General API Client: Used for standard endpoints
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: resolvedBaseURL,
 });
 
 // 2. Auth API Client: Dedicated specifically to auth actions needing the HttpOnly cookie
 export const authApi = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: resolvedBaseURL,
   withCredentials: true,
 });
 
