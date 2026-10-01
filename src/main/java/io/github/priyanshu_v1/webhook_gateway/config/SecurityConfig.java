@@ -45,7 +45,17 @@ public class SecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
-    
+    // 0. Actuator Health Check Chain (Unauthenticated for AWS ALB)
+    @Bean
+    @Order(0)
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/actuator/health")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .build();
+    }
     
     // 1. Ingestion / Dispatch Engine Chain (Strictly API Key Only)
     @Bean

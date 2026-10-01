@@ -109,33 +109,33 @@ Set the following environment variables in your production host or deployment pi
 | `SPRING_DATASOURCE_URL` | PostgreSQL JDBC connection URL | `jdbc:postgresql://your-db-host:5432/webhook_gateway` |
 | `SPRING_DATASOURCE_USERNAME` | Database user | `postgres` |
 | `SPRING_DATASOURCE_PASSWORD` | Database password | `SecureDBPass123!` |
-| `SPRING_RABBITMQ_HOST` | RabbitMQ host address | `your-rabbitmq-host` |
-| `SPRING_RABBITMQ_PORT` | RabbitMQ port | `5672` |
-| `SPRING_RABBITMQ_USERNAME` | RabbitMQ username | `admin` |
-| `SPRING_RABBITMQ_PASSWORD` | RabbitMQ password | `RabbitPass123!` |
-| `REDIS_HOST` | Redis cache host address | `your-redis-host` |
-| `REDIS_PORT` | Redis port | `6379` |
+| `SPRING_RABBITMQ_URL` | RabbitMQ connection URL | `amqp://user:password@hostname:5672/vhost` |
+| `REDIS_URL` | Redis connection URL | `redis://:password@hostname:6379` |
 | `JWT_SECRET` | Strong secret key for signing JWTs | `64-character hex string` |
+| `JWT_EXPIRATION_MS` | JWT token validity duration in milliseconds | `86400000` |
 | `ENCRYPTION_KEY` | 32-byte Base64-encoded AES key | `6qlZF66XR5hJ1g1qkGWCf8noobfc/LTHpW5mtUNUez0=` |
+| `CORS_ENABLED` | Whether CORS is enabled globally | `true` or `false` |
 | `ALLOWED_ORIGINS` | Comma-separated CORS allowed origins | `https://yourdomain.com` |
 | `SERVE_FRONTEND` | Whether Spring Boot serves the built frontend SPA | `true` or `false` (default: `true`) |
-
+| `SPRING_PROFILES_ACTIVE` | Active Spring profile configuration | `prod` |
 
 ### 2. Running in Production Mode
 
 Start the Spring Boot application using the production profile flag:
 
 ```bash
-export SPRING_DATASOURCE_URL="jdbc:postgresql://..."
-export SPRING_DATASOURCE_USERNAME="..."
-export SPRING_DATASOURCE_PASSWORD="..."
-export SPRING_RABBITMQ_HOST="..."
-export SPRING_RABBITMQ_USERNAME="..."
-export SPRING_RABBITMQ_PASSWORD="..."
-export REDIS_HOST="..."
-export JWT_SECRET="..."
-export ENCRYPTION_KEY="..."
-export ALLOWED_ORIGINS="[https://yourdomain.com](https://yourdomain.com)"
+export SPRING_DATASOURCE_URL="jdbc:postgresql://your-db-host:5432/webhook_gateway"
+export SPRING_DATASOURCE_USERNAME="postgres"
+export SPRING_DATASOURCE_PASSWORD="SecureDBPass123!"
+export SPRING_RABBITMQ_URL="amqp://user:password@hostname:5672/vhost"
+export REDIS_URL="redis://:password@hostname:6379"
+export JWT_SECRET="your-64-character-hex-string"
+export JWT_EXPIRATION_MS="86400000"
+export ENCRYPTION_KEY="6qlZF66XR5hJ1g1qkGWCf8noobfc/LTHpW5mtUNUez0="
+export CORS_ENABLED="false"
+export ALLOWED_ORIGINS="https://yourdomain.com"
+export SERVE_FRONTEND="true"
+export SPRING_PROFILES_ACTIVE="prod"
 
 # Start application with the production profile
 ./mvnw spring-boot:run -Dspring.profiles.active=prod
