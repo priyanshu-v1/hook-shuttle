@@ -172,6 +172,7 @@ Register the destination URL where HookShuttle should deliver incoming webhooks.
   "timeout_ms": 5000,
   "max_retries": 3
 }
+```
 
 #### Response (`201 Created`)
 ```json
@@ -187,6 +188,7 @@ Register the destination URL where HookShuttle should deliver incoming webhooks.
   "created_at": "2026-10-09T18:30:00Z",
   "updated_at": "2026-10-09T18:30:00Z"
 }
+```
 
 ### 2. Dispatch / Ingestion API
 Ingest webhooks into the gateway. The request is processed asynchronously and queued for guaranteed delivery.
@@ -205,6 +207,7 @@ Ingest webhooks into the gateway. The request is processed asynchronously and qu
   "amount": 4900,
   "currency": "usd"
 }
+```
 
 #### Response (`202 Accepted`)
 ```json
@@ -213,6 +216,7 @@ Ingest webhooks into the gateway. The request is processed asynchronously and qu
   "status": "ACCEPTED",
   "created_at": "2026-10-09T18:30:00Z"
 }
+```
 
 ---
 
