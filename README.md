@@ -154,6 +154,68 @@ java -Dspring.profiles.active=prod -jar target/webhook-gateway-0.0.1-SNAPSHOT.ja
 
 ---
 
+## 🔌 API Usage Guide
+
+### 1. Register a Webhook Endpoint
+Register the destination URL where HookShuttle should deliver incoming webhooks.
+
+- **Endpoint:** `POST /api/v1/endpoints`
+- **Authentication:** `X-API-KEY` header (API Key)
+- **Content-Type:** `application/json`
+
+#### Request Body
+```json
+{
+  "target_url": "[https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45](https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45)",
+  "description": "Primary production listener",
+  "rate_limit_per_sec": 10,
+  "timeout_ms": 5000,
+  "max_retries": 3
+}
+
+#### Response (`201 Created`)
+```json
+{
+  "id": "c1a2b3c4-d5e6-7890-abcd-ef1234567890",
+  "target_url": "[https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45](https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45)",
+  "description": "Primary production listener",
+  "secret_key": "whsec_abcdef123456789...",
+  "status": "ACTIVE",
+  "rate_limit_per_sec": 10,
+  "timeout_ms": 5000,
+  "max_retries": 3,
+  "created_at": "2026-10-09T18:30:00Z",
+  "updated_at": "2026-10-09T18:30:00Z"
+}
+
+### 2. Dispatch / Ingestion API
+Ingest webhooks into the gateway. The request is processed asynchronously and queued for guaranteed delivery.
+
+- **Endpoint:** `POST /api/v1/webhooks/dispatch`
+- **Authentication:** `X-API-KEY` header (API Key)
+- **Headers:** 
+  - `X-Endpoint-ID`: `c1a2b3c4-d5e6-7890-abcd-ef1234567890` (UUID of the registered endpoint)
+  - `X-Event-Type`: `payment.succeeded`
+- **Content-Type:** `application/json`
+
+#### Request Body
+```json
+{
+  "charge_id": "ch_123456789",
+  "amount": 4900,
+  "currency": "usd"
+}
+
+#### Response (`202 Accepted`)
+```json
+{
+  "event_id": "e4f3a2b1-c6d5-8901-fedc-ba0987654321",
+  "status": "ACCEPTED",
+  "created_at": "2026-10-09T18:30:00Z"
+}
+
+---
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
