@@ -8,6 +8,14 @@
 
 <h1 align="center" style="margin-top: -10px;">HookShuttle</h1>
 
+<p align="center">
+  <a href="https://your-app-name.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/Live_Demo-Try_HookShuttle-6366F1?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
+  </a>
+  <br>
+<sub>💡 <b>Demo Login Note:</b> Mock mode is active — use any email and a password (8+ characters).</sub>
+</p>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 25](https://img.shields.io/badge/Java-25-ED8B00?logo=java&logoColor=white)](https://www.java.com/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -21,13 +29,13 @@ A high-performance, secure, and observable **Enterprise Webhook Gateway and Mana
 
 Third-party webhooks are notoriously difficult to manage. HookShuttle solves the operational nightmare by providing a centralized, robust pipeline.
 
-* **Ingestion at Scale**: Securely ingest raw webhooks via API Keys (User X) and return a 202 Accepted in <15ms.
-* **Guaranteed Delivery**: Asynchronous processing with RabbitMQ ensures the ingress never slows down.
-* **Smart Retries**:
-  * **Short-Term**: Exponential backoff using Redisson's high-performance delay queues ($2^n$).
-  * **Long-Term**: PostgreSQL cold-retry sweeper for extended backoff periods.
-* **Enterprise Security**: End-to-end AES-256 payload encryption, HMAC signature verification, and JWT refresh token rotation.
-* **Real-Time Observability**: A clean React + Shadcn UI dashboard to track every event, inspect payloads, and manually replay failed webhooks (DLQ).
+- **Ingestion at Scale**: Securely ingest raw webhooks via API Keys (User X) and return a 202 Accepted in <15ms.
+- **Guaranteed Delivery**: Asynchronous processing with RabbitMQ ensures the ingress never slows down.
+- **Smart Retries**:
+    - **Short-Term**: Exponential backoff using Redisson's high-performance delay queues ($2^n$).
+    - **Long-Term**: PostgreSQL cold-retry sweeper for extended backoff periods.
+- **Enterprise Security**: End-to-end AES-256 payload encryption, HMAC signature verification, and JWT refresh token rotation.
+- **Real-Time Observability**: A clean React + Shadcn UI dashboard to track every event, inspect payloads, and manually replay failed webhooks (DLQ).
 
 ---
 
@@ -46,9 +54,9 @@ This project requires a full infrastructure stack running via Docker.
 
 ### Prerequisites
 
-* Java 25+
-* Node.js 20+ & npm
-* Docker & Docker Compose
+- Java 25+
+- Node.js 20+ & npm
+- Docker & Docker Compose
 
 ### 1. Start Infrastructure (Docker)
 
@@ -75,6 +83,7 @@ From the root project directory:
 ```bash
 ./mvnw spring-boot:run -Dspring.profiles.active=dev
 ```
+
 (The backend API starts on `http://localhost:8080`)
 
 ### 4. Run the Frontend Dashboard
@@ -86,9 +95,11 @@ cd frontend
 npm install
 npm run dev
 ```
+
 (The frontend dashboard starts on `http://localhost:5000`)
 
 > **Note on CORS:** If you run the frontend on a custom port (e.g., `http://localhost:5173`), ensure your `application-dev.properties` (or environment variables) has CORS enabled and your origin allowed:
+>
 > ```properties
 > hook-shuttle.cors.enabled=true
 > hook-shuttle.cors.allowed-origins=${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
@@ -104,20 +115,20 @@ To run HookShuttle in a production environment, you must pass the production Spr
 
 Set the following environment variables in your production host or deployment pipeline (e.g., Docker, Kubernetes, or a Linux service file):
 
-| Environment Variable | Description | Example / Required Format |
-| :--- | :--- | :--- |
-| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC connection URL | `jdbc:postgresql://your-db-host:5432/webhook_gateway` |
-| `SPRING_DATASOURCE_USERNAME` | Database user | `postgres` |
-| `SPRING_DATASOURCE_PASSWORD` | Database password | `SecureDBPass123!` |
-| `SPRING_RABBITMQ_URL` | RabbitMQ connection URL | `amqp://user:password@hostname:5672/vhost` |
-| `REDIS_URL` | Redis connection URL | `redis://:password@hostname:6379` |
-| `JWT_SECRET` | Strong secret key for signing JWTs | `64-character hex string` |
-| `JWT_EXPIRATION_MS` | JWT token validity duration in milliseconds | `86400000` |
-| `ENCRYPTION_KEY` | 32-byte Base64-encoded AES key | `6qlZF66XR5hJ1g1qkGWCf8noobfc/LTHpW5mtUNUez0=` |
-| `CORS_ENABLED` | Whether CORS is enabled globally | `true` or `false` |
-| `ALLOWED_ORIGINS` | Comma-separated CORS allowed origins | `https://yourdomain.com` |
-| `SERVE_FRONTEND` | Whether Spring Boot serves the built frontend SPA | `true` or `false` (default: `true`) |
-| `SPRING_PROFILES_ACTIVE` | Active Spring profile configuration | `prod` |
+| Environment Variable         | Description                                       | Example / Required Format                             |
+| :--------------------------- | :------------------------------------------------ | :---------------------------------------------------- |
+| `SPRING_DATASOURCE_URL`      | PostgreSQL JDBC connection URL                    | `jdbc:postgresql://your-db-host:5432/webhook_gateway` |
+| `SPRING_DATASOURCE_USERNAME` | Database user                                     | `postgres`                                            |
+| `SPRING_DATASOURCE_PASSWORD` | Database password                                 | `SecureDBPass123!`                                    |
+| `SPRING_RABBITMQ_URL`        | RabbitMQ connection URL                           | `amqp://user:password@hostname:5672/vhost`            |
+| `REDIS_URL`                  | Redis connection URL                              | `redis://:password@hostname:6379`                     |
+| `JWT_SECRET`                 | Strong secret key for signing JWTs                | `64-character hex string`                             |
+| `JWT_EXPIRATION_MS`          | JWT token validity duration in milliseconds       | `86400000`                                            |
+| `ENCRYPTION_KEY`             | 32-byte Base64-encoded AES key                    | `6qlZF66XR5hJ1g1qkGWCf8noobfc/LTHpW5mtUNUez0=`        |
+| `CORS_ENABLED`               | Whether CORS is enabled globally                  | `true` or `false`                                     |
+| `ALLOWED_ORIGINS`            | Comma-separated CORS allowed origins              | `https://yourdomain.com`                              |
+| `SERVE_FRONTEND`             | Whether Spring Boot serves the built frontend SPA | `true` or `false` (default: `true`)                   |
+| `SPRING_PROFILES_ACTIVE`     | Active Spring profile configuration               | `prod`                                                |
 
 ### 2. Running in Production Mode
 
@@ -140,14 +151,17 @@ export SPRING_PROFILES_ACTIVE="prod"
 # Start application with the production profile
 ./mvnw spring-boot:run -Dspring.profiles.active=prod
 ```
+
 Alternatively, if you are running a pre-built fat JAR:
 
 ```bash
 java -Dspring.profiles.active=prod -jar target/webhook-gateway-0.0.1-SNAPSHOT.jar
 ```
-> **Note:** You can also pass configuration properties directly as Java system properties via `-D` flags if you prefer not to export shell environment variables. 
-> 
-> *Example:*
+
+> **Note:** You can also pass configuration properties directly as Java system properties via `-D` flags if you prefer not to export shell environment variables.
+>
+> _Example:_
+>
 > ```bash
 > java -Dspring.profiles.active=prod -Dspring.datasource.url="jdbc:postgresql://..." -jar target/webhook-gateway-0.0.1-SNAPSHOT.jar
 > ```
@@ -157,6 +171,7 @@ java -Dspring.profiles.active=prod -jar target/webhook-gateway-0.0.1-SNAPSHOT.ja
 ## 🔌 API Usage Guide
 
 ### 1. Register a Webhook Endpoint
+
 Register the destination URL where HookShuttle should deliver incoming webhooks.
 
 - **Endpoint:** `POST /api/v1/endpoints`
@@ -164,57 +179,62 @@ Register the destination URL where HookShuttle should deliver incoming webhooks.
 - **Content-Type:** `application/json`
 
 #### Request Body
+
 ```json
 {
-  "target_url": "[https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45](https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45)",
-  "description": "Primary production listener",
-  "rate_limit_per_sec": 10,
-  "timeout_ms": 5000,
-  "max_retries": 3
+    "target_url": "[https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45](https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45)",
+    "description": "Primary production listener",
+    "rate_limit_per_sec": 10,
+    "timeout_ms": 5000,
+    "max_retries": 3
 }
 ```
 
 #### Response (`201 Created`)
+
 ```json
 {
-  "id": "c1a2b3c4-d5e6-7890-abcd-ef1234567890",
-  "target_url": "[https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45](https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45)",
-  "description": "Primary production listener",
-  "secret_key": "whsec_abcdef123456789...",
-  "status": "ACTIVE",
-  "rate_limit_per_sec": 10,
-  "timeout_ms": 5000,
-  "max_retries": 3,
-  "created_at": "2026-10-09T18:30:00Z",
-  "updated_at": "2026-10-09T18:30:00Z"
+    "id": "c1a2b3c4-d5e6-7890-abcd-ef1234567890",
+    "target_url": "[https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45](https://webhook.site/efd9fff7-d299-4b13-b8d4-e08a3207ed45)",
+    "description": "Primary production listener",
+    "secret_key": "whsec_abcdef123456789...",
+    "status": "ACTIVE",
+    "rate_limit_per_sec": 10,
+    "timeout_ms": 5000,
+    "max_retries": 3,
+    "created_at": "2026-10-09T18:30:00Z",
+    "updated_at": "2026-10-09T18:30:00Z"
 }
 ```
 
 ### 2. Dispatch / Ingestion API
+
 Ingest webhooks into the gateway. The request is processed asynchronously and queued for guaranteed delivery.
 
 - **Endpoint:** `POST /api/v1/webhooks/dispatch`
 - **Authentication:** `X-API-KEY` header (API Key)
-- **Headers:** 
-  - `X-Endpoint-ID`: `c1a2b3c4-d5e6-7890-abcd-ef1234567890` (UUID of the registered endpoint)
-  - `X-Event-Type`: `payment.succeeded`
+- **Headers:**
+    - `X-Endpoint-ID`: `c1a2b3c4-d5e6-7890-abcd-ef1234567890` (UUID of the registered endpoint)
+    - `X-Event-Type`: `payment.succeeded`
 - **Content-Type:** `application/json`
 
 #### Request Body
+
 ```json
 {
-  "charge_id": "ch_123456789",
-  "amount": 4900,
-  "currency": "usd"
+    "charge_id": "ch_123456789",
+    "amount": 4900,
+    "currency": "usd"
 }
 ```
 
 #### Response (`202 Accepted`)
+
 ```json
 {
-  "event_id": "e4f3a2b1-c6d5-8901-fedc-ba0987654321",
-  "status": "ACCEPTED",
-  "created_at": "2026-10-09T18:30:00Z"
+    "event_id": "e4f3a2b1-c6d5-8901-fedc-ba0987654321",
+    "status": "ACCEPTED",
+    "created_at": "2026-10-09T18:30:00Z"
 }
 ```
 
