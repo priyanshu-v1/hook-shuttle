@@ -9,7 +9,7 @@
 <h1 align="center" style="margin-top: -10px;">HookShuttle</h1>
 
 <p align="center">
-  <a href="https://hook-shuttle-84488db4n-pv-1.vercel.app" target="_blank">
+  <a href="https://hook-shuttle.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/Live_Demo-Try_HookShuttle-6366F1?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
   <br>
